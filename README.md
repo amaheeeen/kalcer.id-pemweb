@@ -1,6 +1,6 @@
 # ☕ Kalcer.ID — Jaksel’s Ultimate Hangout Guide
 
-![Kalcer.ID Banner](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=9333ea,ec4899,ef4444&height=250&section=header&text=Kalcer.ID&fontSize=80&fontAlign=50&animation=fadeIn&desc=No%20Gatekeeping.%20Just%20Vibes.&descAlign=50&descAlignY=60)
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=9333ea,ec4899,ef4444&height=300&section=header&text=Kalcer.ID&fontSize=70&fontAlign=50&animation=fadeIn&desc=No%20Gatekeeping.%20Just%20Vibes.&descAlign=50&descAlignY=81&descSize=20" width="100%">
 
 <div align="center">
 
