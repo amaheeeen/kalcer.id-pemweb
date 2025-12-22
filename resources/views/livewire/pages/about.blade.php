@@ -47,7 +47,7 @@ class extends Component {
 
             <div class="group text-center space-y-4">
                 <div class="relative w-32 h-32 mx-auto bg-gray-100 rounded-full overflow-hidden border-4 border-white shadow-lg group-hover:scale-110 group-hover:shadow-blue-200 transition-all duration-300">
-                    <img src="https://api.dicebear.com/9.x/notionists/svg?seed=Ryan&backgroundColor=dbeafe" alt="Alphard" class="w-full h-full object-cover">
+                    <img src="https://api.dicebear.com/9.x/notionists/svg?seed=Jessica&backgroundColor=fce7f3" alt="Alphard" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h3 class="font-bold text-lg">Alphard</h3>
@@ -80,7 +80,7 @@ class extends Component {
 
             <div class="group text-center space-y-4">
                 <div class="relative w-32 h-32 mx-auto bg-gray-100 rounded-full overflow-hidden border-4 border-white shadow-lg group-hover:scale-110 group-hover:shadow-pink-200 transition-all duration-300">
-                    <img src="https://api.dicebear.com/9.x/notionists/svg?seed=Jessica&backgroundColor=fce7f3" alt="Audrey" class="w-full h-full object-cover">
+                    <img src="https://api.dicebear.com/9.x/notionists/svg?seed=Ryan&backgroundColor=dbeafe" alt="Audrey" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h3 class="font-bold text-lg">Audrey</h3>

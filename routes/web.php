@@ -3,6 +3,22 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
+// --- JALUR DARURAT BUAT SEEDING DATABASE ---
+Route::get('/fix-database-sekarang', function () {
+    // 1. Paksa migrasi ulang (hapus semua tabel & buat baru)
+    Artisan::call('migrate:fresh', ['--force' => true]);
+    
+    // 2. Isi data dummy (Seeding)
+    Artisan::call('db:seed', ['--force' => true]);
+    
+    // 3. Link storage gambar
+    Artisan::call('storage:link');
+    
+    return "<h1>✅ SUKSES! Database Railway sudah di-reset & di-isi.</h1>";
+});
 
 // --- BAGIAN 1: KALCER.ID (PUBLIC) ---
 
@@ -59,4 +75,6 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
+
+    
 });
