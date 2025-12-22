@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
 // --- JALUR DARURAT BUAT SEEDING DATABASE ---
