@@ -1,12 +1,3 @@
-Tentu, ini adalah draf **README.md** yang estetik, profesional, tapi tetap punya *vibe* anak muda sesuai branding **Kalcer.ID**.
-
-Saya sudah menyusunnya agar rapi, mudah dibaca, dan mencakup semua teknis yang kamu minta (termasuk cara jalanin server & npm barengan).
-
-Silakan buat file baru bernama `README.md` di folder root project kamu, lalu copy-paste isinya:
-
----
-
-```markdown
 # ☕ Kalcer.ID — Jaksel’s Ultimate Hangout Guide
 
 ![Kalcer.ID Banner](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=9333ea,ec4899,ef4444&height=250&section=header&text=Kalcer.ID&fontSize=80&fontAlign=50&animation=fadeIn&desc=No%20Gatekeeping.%20Just%20Vibes.&descAlign=50&descAlignY=60)
@@ -178,16 +169,6 @@ Made with ❤️ by **Kelompok Kalcer** (Pemrograman Web)
 *Farhan • Alphard • Ali • Irfan • Audrey*
 
 </div>
-
-```
-
------
-
-### 💡 Tips Tambahan:
-
-1.  **Header Image:** Saya pakai *Capsule Render* (generator otomatis) biar header kamu ada gelombang warna-warni yang estetik tanpa perlu desain manual.
-2.  **Badges:** Saya kasih logo Laravel, Livewire, dll biar kelihatan *tech-savvy*.
-3.  **Struktur Folder:** Saya jelaskan spesifik bahwa logic ada di `resources/views/livewire` karena kamu pakai Volt (beda sama Laravel biasa).
 
 Langsung gaskeuun commit `README.md` ini\! 🚀
 
