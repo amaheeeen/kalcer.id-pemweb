@@ -1,160 +1,218 @@
 <?php
 
-use App\Models\HangoutPlace;
 use Livewire\Volt\Component;
-use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 
 new 
 #[Layout('components.layouts.app')] 
 class extends Component {
-    use WithPagination;
-
-    public $search = '';
-    public $category = '';
-
     public function with(): array
     {
-        $query = HangoutPlace::query()->where('is_verified', true);
-
-        if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%');
-        }
-
-        if ($this->category) {
-            $query->where('category', $this->category);
-        }
-
         return [
-            'places' => $query->orderBy('viral_score', 'desc')->paginate(6), // Tampilkan 6 di home
+            // DATA DUMMY: Berdasarkan Riset Tren Jaksel Late 2025
+            'recommendations' => [
+                [
+                    'id' => 1,
+                    'name' => 'Tanatap Coffee Ampera',
+                    'category' => 'Artistic & WFC',
+                    'image' => 'https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=800&auto=format&fit=crop', // Representasi: Green Architecture
+                    'rating' => 4.8,
+                    'reviews' => 1240,
+                    'location' => 'Ampera, Jakarta Selatan',
+                    'badge' => '🔥 Viral',
+                    'description' => 'Spot WFC favorit arsitek Jaksel. Konsep "Ring Garden" yang menggabungkan area duduk outdoor dengan atap hijau melingkar.'
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Urban Forest Cipete',
+                    'category' => 'Nature & Chill',
+                    'image' => 'https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=800&auto=format&fit=crop', // LINK BARU (Nuansa Taman Kota)
+                    'rating' => 4.9,
+                    'reviews' => 3100,
+                    'location' => 'Cipete, Jakarta Selatan',
+                    'badge' => '🌿 Healing',
+                    'description' => 'Hutan kota estetik tempat healing tipis-tipis. Banyak tenant hits (Solo Pizza, El Profesor) dengan suasana asri pepohonan rindang.'
+                ],
+                [
+                    'id' => 3,
+                    'name' => 'Oddity Coffee Senopati',
+                    'category' => 'Aesthetic & Brunch',
+                    'image' => 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800&auto=format&fit=crop', // Representasi: Modern Minimalist
+                    'rating' => 4.7,
+                    'reviews' => 850,
+                    'location' => 'Senopati, Jakarta Selatan',
+                    'badge' => '✨ OOTD Spot',
+                    'description' => 'Cafe berkonsep Brutalist yang unik. Interior dominasi semen ekspos dan kopi specialty, wajib mampir buat konten Instagram.'
+                ],
+            ]
         ];
     }
 }; ?>
 
-<div>
-    <section class="relative py-20 lg:py-32 px-4 text-center overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-
-        <div class="relative max-w-4xl mx-auto space-y-6">
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 leading-tight">
-                Temukan Tempat <br>
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-                    Hangout Viral
+<div class="min-h-screen bg-white font-sans text-gray-900">
+    
+    <section class="relative h-[85vh] min-h-[600px] flex items-center justify-center overflow-hidden bg-black">
+        
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1534353473418-4cfa6c56fd38?q=80&w=2000&auto=format&fit=crop" 
+                 class="w-full h-full object-cover object-center scale-105 animate-slow-zoom opacity-60"
+                 alt="Jakarta Night Cityscape">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+        </div>
+        
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto space-y-8 animate-fade-in-up">
+            
+            <div class="flex justify-center">
+                <span class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-lg border border-white/10 text-white text-xs font-bold tracking-[0.2em] uppercase">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Live Jakarta Selatan Guide
                 </span>
-                di Jaksel
+            </div>
+
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-none drop-shadow-2xl">
+                Temukan <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">Vibes</span><br>
+                Jakarta Selatan.
             </h1>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto">
-                Kurasi tempat nongkrong paling hits, estetik, dan nyaman buat WFC atau sekadar healing tipis-tipis.
+            
+            <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-md">
+                Kurasi tempat nongkrong paling valid, anti-zonk, dan terupdate real-time. Dari hidden gem Senopati sampai rooftop hits SCBD.
             </p>
             
-            <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-                <button class="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-200 hover:shadow-xl hover:scale-105 transition transform duration-200">
-                    Jelajahi Maps 🗺️
-                </button>
-                <button class="px-8 py-4 rounded-full bg-white border-2 border-purple-100 text-purple-600 font-bold hover:bg-purple-50 hover:border-purple-200 transition duration-200">
+            <div class="pt-8 flex flex-col sm:flex-row gap-5 justify-center">
+                <a href="{{ route('maps') }}" wire:navigate class="group relative px-8 py-4 bg-white text-black rounded-full font-bold text-lg overflow-hidden shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)]">
+                    <span class="relative z-10 flex items-center gap-2">
+                        Jelajahi Peta
+                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </span>
+                </a>
+                <a href="{{ route('trending') }}" wire:navigate class="group px-8 py-4 bg-white/5 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg transition-all hover:bg-white/20 hover:border-white">
                     Lihat Trending 🔥
-                </button>
+                </a>
             </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
         </div>
     </section>
 
-    <section class="border-y border-white/50 bg-white/50 backdrop-blur-sm py-8">
-        <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+    <section class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-end mb-12">
             <div>
-                <div class="text-3xl font-extrabold text-gray-900">150+</div>
-                <div class="text-sm text-gray-500 font-medium">Tempat Viral</div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+                    Rekomendasi Minggu Ini ✨
+                </h2>
+                <p class="text-gray-500 text-lg">Spot paling <span class="text-purple-600 font-bold">valid</span> menurut algoritma Jaksel.</p>
             </div>
-            <div>
-                <div class="text-3xl font-extrabold text-gray-900">50k+</div>
-                <div class="text-sm text-gray-500 font-medium">Review Jujur</div>
-            </div>
-            <div>
-                <div class="text-3xl font-extrabold text-gray-900">24/7</div>
-                <div class="text-sm text-gray-500 font-medium">Real-time Data</div>
-            </div>
-            <div>
-                <div class="text-3xl font-extrabold text-gray-900">#1</div>
-                <div class="text-sm text-gray-500 font-medium">Platform Jaksel</div>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-12 px-4 max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <h2 class="text-2xl font-bold text-gray-900">Rekomendasi Minggu Ini ✨</h2>
-            
-            <div class="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
-                <button wire:click="$set('category', '')" class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition {{ $category == '' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">All Spots</button>
-                <button wire:click="$set('category', 'Coffee Shop')" class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition {{ $category == 'Coffee Shop' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">☕ Coffee</button>
-                <button wire:click="$set('category', 'Creative Hub')" class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition {{ $category == 'Creative Hub' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">🎨 Artsy</button>
-            </div>
+            <a href="{{ route('trending') }}" wire:navigate class="hidden md:flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-800 transition">
+                Lihat Semua
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </a>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @forelse($places as $place)
-                <div class="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col h-full overflow-hidden">
+            @foreach($recommendations as $place)
+                <div class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full cursor-pointer">
                     
                     <div class="relative h-64 overflow-hidden">
-                        <img src="{{ $place->image_url }}" alt="{{ $place->name }}" class="object-cover w-full h-full group-hover:scale-110 transition duration-700">
+                        <img src="{{ $place['image'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                         
                         <div class="absolute top-4 left-4">
-                             @if($place->viral_score > 90)
-                                <span class="bg-white/90 backdrop-blur text-purple-700 text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                                    <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-                                    #1 TRENDING
-                                </span>
-                             @endif
+                            <span class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-extrabold uppercase tracking-wide rounded-full text-gray-900 shadow-sm">
+                                {{ $place['badge'] }}
+                            </span>
                         </div>
-
-                        <div class="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md font-bold text-sm text-gray-900 border-2 border-purple-100">
-                            {{ $place->viral_score }}
+                        <div class="absolute bottom-4 right-4">
+                            <div class="flex items-center gap-1 bg-black/70 backdrop-blur text-white px-2 py-1 rounded-lg text-xs font-bold">
+                                ⭐ {{ $place['rating'] }} <span class="text-gray-400 font-normal">({{ $place['reviews'] }})</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="p-6 flex flex-col flex-1">
-                        <div class="mb-2 flex justify-between items-start">
-                            <div>
-                                <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-wide">
-                                    {{ $place->category }}
-                                </span>
-                                <h3 class="mt-2 text-xl font-bold text-gray-900 group-hover:text-purple-600 transition">
-                                    {{ $place->name }}
-                                </h3>
-                            </div>
-                            <div class="flex items-center gap-1 text-yellow-500 font-bold text-sm">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                <span>4.8</span>
-                            </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider bg-purple-50 px-2 py-1 rounded-md">
+                                {{ $place['category'] }}
+                            </span>
                         </div>
-
-                        <p class="text-gray-500 text-sm line-clamp-2 mb-4">
-                            {{ $place->description }}
+                        
+                        <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition">
+                            {{ $place['name'] }}
+                        </h3>
+                        
+                        <p class="text-gray-500 text-sm leading-relaxed line-clamp-2 mb-4 flex-1">
+                            {{ $place['description'] }}
                         </p>
-
-                        <div class="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                            <div class="flex items-center gap-3 text-xs text-gray-400 font-medium">
-                                <span class="flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.069-4.849 0-3.204.013-3.583.069-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                                    12k
-                                </span>
+                        
+                        <div class="pt-4 border-t border-gray-100 flex items-center justify-between mt-auto">
+                            <div class="flex items-center text-gray-400 text-xs font-medium">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                {{ $place['location'] }}
                             </div>
-
-                            <a href="{{ route('place.show', $place) }}" class="text-sm font-bold text-purple-600 hover:text-pink-600 transition" wire:navigate>
-                                Lihat Detail →
-                            </a>
+                            <span class="text-purple-600 font-bold text-sm">Detail →</span>
                         </div>
                     </div>
                 </div>
-            @empty
-                <div class="col-span-full py-20 text-center">
-                    <p class="text-gray-500">Belum ada tempat yang cocok dengan filter kamu.</p>
-                </div>
-            @endforelse
+            @endforeach
         </div>
+
+        <div class="mt-8 text-center md:hidden">
+            <a href="{{ route('trending') }}" wire:navigate class="inline-flex items-center justify-center w-full px-6 py-3 border border-gray-300 shadow-sm text-sm font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50">
+                Lihat Semua Tempat
+            </a>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gray-50 border-y border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-extrabold mb-12">Kenapa Kalcer.ID?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-md mx-auto flex items-center justify-center text-3xl">🎯</div>
+                    <h3 class="font-bold text-xl">Akurasi Tinggi</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Kami memfilter tempat yang cuma "bagus di foto" tapi aslinya zonk. Review jujur adalah kunci.</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-md mx-auto flex items-center justify-center text-3xl">⚡</div>
+                    <h3 class="font-bold text-xl">Update Tiap Hari</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Bot kami memantau tren TikTok & Instagram secara real-time untuk menangkap apa yang lagi viral.</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-md mx-auto flex items-center justify-center text-3xl">🤝</div>
+                    <h3 class="font-bold text-xl">Komunitas</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Dibangun oleh anak Jaksel, untuk anak Jaksel. Bergabunglah dan bagikan hidden gem versimu.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="relative py-32 px-4 overflow-hidden bg-black text-white text-center">
         
-        <div class="mt-12 flex justify-center">
-            {{ $places->links() }}
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-purple-900/40 via-pink-900/40 to-purple-900/40 blur-[100px] rounded-full pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-4xl mx-auto space-y-8">
+            <h2 class="text-4xl md:text-6xl font-black tracking-tighter">
+                Jangan Cuma Jadi <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Penonton Story.</span>
+            </h2>
+            
+            <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                Gabung sekarang buat dapet akses ke <strong>Hidden Gems</strong>, review jujur, dan komunitas paling valid se-Jakarta Selatan.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-5 justify-center pt-6">
+                <a href="{{ route('register') }}" class="px-10 py-4 bg-white text-black rounded-full font-bold text-lg hover:bg-gray-200 transition transform hover:-translate-y-1 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_40px_rgba(255,255,255,0.5)]">
+                    Join Community 🚀
+                </a>
+                
+                <a href="{{ route('login') }}" class="px-10 py-4 bg-transparent border border-gray-700 text-white rounded-full font-bold text-lg hover:border-white hover:bg-white/5 transition">
+                    Masuk Akun
+                </a>
+            </div>
+            
+            <p class="text-xs text-gray-600 pt-8 uppercase tracking-widest font-bold">
+                Join 1,200+ Local Explorers
+            </p>
         </div>
     </section>
 </div>
