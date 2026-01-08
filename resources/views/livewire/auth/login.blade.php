@@ -1,17 +1,17 @@
 <?php
 
-use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Layout; // <--- Import Attribute Layout
 use Livewire\Volt\Component;
 
-new class extends Component {
+new 
+#[Layout('components.layouts.auth')] // <--- Definisikan Layout di sini
+class extends Component {
     public string $email = '';
     public string $password = '';
     public bool $remember = false;
 
-    // Fungsi dummy untuk mencegah error browser extension
     public function toJSON() { return; }
 
     public function login(): void
@@ -29,7 +29,6 @@ new class extends Component {
 
         session()->regenerate();
 
-        // LOGIKA REDIRECT: Pemilik Usaha ke Dashboard Bisnis, User Biasa ke Home
         if (Auth::user()->role === 'business_owner') {
             $this->redirect(route('business.dashboard'), navigate: true);
         } else {
@@ -38,29 +37,28 @@ new class extends Component {
     }
 }; ?>
 
-<x-layouts.auth>
-    <div class="flex flex-col gap-6">
-        <x-auth-header title="Selamat Datang" description="Masuk untuk melanjutkan" />
-
-        <form wire:submit="login" class="flex flex-col gap-6">
-            
-            <flux:input wire:model="email" label="Email" type="email" required autofocus placeholder="email@contoh.com" />
-
-            <div class="relative">
-                <flux:input wire:model="password" label="Password" type="password" required viewable placeholder="Password" />
-            </div>
-
-            <flux:checkbox wire:model="remember" label="Ingat saya" />
-
-            <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
-                    Masuk
-                </flux:button>
-            </div>
-        </form>
-
-        <div class="text-center text-sm text-zinc-600">
-            Belum punya akun? <flux:link :href="route('register')" wire:navigate class="font-bold text-indigo-600">Daftar sekarang</flux:link>
-        </div>
+<div class="flex flex-col gap-6">
+    <div class="text-center">
+        <h2 class="text-xl font-bold text-gray-900">Selamat Datang Kembali</h2>
+        <p class="text-sm text-gray-500">Masuk untuk melanjutkan</p>
     </div>
-</x-layouts.auth>
+
+    <form wire:submit="login" class="flex flex-col gap-5">
+        
+        <flux:input wire:model="email" label="Email" type="email" required autofocus placeholder="nama@email.com" />
+
+        <div class="relative">
+            <flux:input wire:model="password" label="Password" type="password" required viewable placeholder="••••••••" />
+        </div>
+
+        <flux:checkbox wire:model="remember" label="Ingat saya" />
+
+        <flux:button variant="primary" type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-lg transition">
+            Masuk Sekarang
+        </flux:button>
+    </form>
+
+    <div class="text-center text-sm text-gray-600">
+        Belum punya akun? <a href="{{ route('register') }}" wire:navigate class="font-bold text-purple-600 hover:underline">Daftar di sini</a>
+    </div>
+</div>
