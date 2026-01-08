@@ -10,7 +10,6 @@ class extends Component {
     public $search = '';
     public $category = '';
     
-    // Kita gunakan computed property agar data selalu fresh saat filter berubah
     public function with(): array
     {
         $query = HangoutPlace::query()->where('is_verified', true);
@@ -23,99 +22,131 @@ class extends Component {
             $query->where('category', $this->category);
         }
 
-        // Ambil semua data (tanpa pagination) agar semua marker muncul di peta
         return [
             'places' => $query->get(), 
         ];
     }
 }; ?>
 
-<div class="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-white">
-    
-    <div class="w-full lg:w-1/3 flex flex-col border-r border-gray-200 bg-white h-1/2 lg:h-full z-10 shadow-xl lg:shadow-none">
+<div class="flex flex-col lg:flex-row h-[calc(100vh-130px)] rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-2xl relative"
+     x-data="mapboxComponent(@js($places))" 
+     x-init="initMap()"
+>
+    <div class="w-full lg:w-1/3 flex flex-col border-r border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 h-1/2 lg:h-full z-10 relative">
         
-        <div class="p-5 border-b border-gray-100 bg-white z-20">
-            <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
-                Jelajahi Maps 🗺️
+        <div class="p-6 border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-20 sticky top-0">
+            <h1 class="text-3xl font-black brand-font mb-1 text-gray-900 dark:text-white">
+                Explore 🗺️
             </h1>
+            <p class="text-sm text-gray-500 mb-4">Temukan hidden gems di sekitarmu.</p>
             
-            <div class="relative mb-4">
+            <div class="relative mb-4 group">
                 <input wire:model.live.debounce.300ms="search" type="text" 
-                    class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                    placeholder="Cari tempat viral...">
-                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition outline-none text-sm font-bold"
+                    placeholder="Cari tempat nongkrong...">
+                <span class="absolute left-4 top-3.5 text-gray-400 text-lg">🔍</span>
             </div>
 
-            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <button wire:click="$set('category', '')" class="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold transition {{ $category == '' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">All</button>
-                <button wire:click="$set('category', 'Coffee Shop')" class="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold transition {{ $category == 'Coffee Shop' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">☕ Coffee</button>
-                <button wire:click="$set('category', 'Creative Hub')" class="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold transition {{ $category == 'Creative Hub' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">🎨 Artsy</button>
-                <button wire:click="$set('category', 'Public Space')" class="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold transition {{ $category == 'Public Space' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">🌳 Nature</button>
+            <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                <button wire:click="$set('category', '')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition {{ $category == '' ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10' }}">All</button>
+                <button wire:click="$set('category', 'Coffee Shop')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition {{ $category == 'Coffee Shop' ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10' }}">☕ Coffee</button>
+                <button wire:click="$set('category', 'Creative Hub')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition {{ $category == 'Creative Hub' ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10' }}">🎨 Artsy</button>
+                <button wire:click="$set('category', 'Public Space')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition {{ $category == 'Public Space' ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10' }}">🌳 Nature</button>
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" id="places-list">
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-black/20">
             @forelse($places as $place)
                 <div 
                     wire:key="{{ $place->id }}"
-                    x-on:click="$dispatch('focus-map', { lat: {{ $place->latitude }}, lng: {{ $place->longitude }}, id: {{ $place->id }} })"
-                    class="group bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 hover:border-purple-400"
-                    :class="selectedId === {{ $place->id }} ? 'ring-2 ring-purple-500 border-transparent' : ''"
+                    @click="flyToLocation({{ $place->latitude }}, {{ $place->longitude }}, {{ $place->id }})"
+                    class="group bg-white dark:bg-white/5 p-3 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02]"
+                    :class="selectedId === {{ $place->id }} ? 'ring-2 ring-indigo-500 border-transparent' : ''"
                 >
-                    <div class="flex gap-4">
-                        <img src="{{ $place->image_url }}" alt="" class="w-20 h-20 rounded-lg object-cover bg-gray-200">
+                    <div class="flex gap-4 items-center">
+                        <img src="{{ $place->image_url }}" class="w-16 h-16 rounded-xl object-cover bg-gray-200">
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-start">
-                                <h3 class="font-bold text-gray-900 truncate">{{ $place->name }}</h3>
-                                <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">{{ $place->viral_score }}</span>
+                                <h3 class="font-bold text-gray-900 dark:text-white truncate text-sm">{{ $place->name }}</h3>
+                                <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded-full">🔥 {{ $place->viral_score }}</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ $place->address }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{{ $place->address }}</p>
                             <div class="flex items-center gap-2 mt-2">
-                                <span class="text-[10px] font-bold uppercase tracking-wide 
-                                    {{ $place->crowd_level == 'penuh' ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50' }} 
-                                    px-2 py-0.5 rounded-full">
+                                <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full
+                                    {{ $place->crowd_level == 'penuh' ? 'text-red-600 bg-red-50 dark:bg-red-900/20' : 'text-green-600 bg-green-50 dark:bg-green-900/20' }}">
                                     {{ $place->crowd_level }}
                                 </span>
-                                <span class="text-[10px] text-gray-400">{{ $place->category }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             @empty
-                <div class="text-center py-10 text-gray-400">
-                    Tidak ada tempat ditemukan.
+                <div class="text-center py-10">
+                    <p class="text-4xl mb-2">🏜️</p>
+                    <p class="text-gray-400 font-bold">Belum ada tempat di sini.</p>
                 </div>
             @endforelse
         </div>
     </div>
 
-    <div class="w-full lg:w-2/3 h-1/2 lg:h-full relative bg-gray-200"
-         x-data="mapComponent(@js($places))" 
-         x-init="initMap()"
-    >
-        <div id="leaflet-map" class="w-full h-full z-0"></div>
+    <div class="w-full lg:w-2/3 h-1/2 lg:h-full relative bg-gray-200 dark:bg-slate-800">
+        <div id="map" class="w-full h-full z-0"></div>
+
+        <div class="absolute top-4 right-4 flex flex-col gap-2 z-10">
+            <button @click="toggleLayer('traffic')" 
+                    class="p-3 rounded-xl backdrop-blur-md border transition-all shadow-lg font-bold text-xs flex items-center gap-2"
+                    :class="activeLayer === 'traffic' ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-white/90 dark:bg-slate-900/90 text-gray-700 dark:text-gray-300 border-white/20 hover:bg-gray-50'">
+                🚗 Traffic
+            </button>
+
+            <button @click="toggleLayer('heatmap')" 
+                    class="p-3 rounded-xl backdrop-blur-md border transition-all shadow-lg font-bold text-xs flex items-center gap-2"
+                    :class="activeLayer === 'heatmap' ? 'bg-orange-600 text-white border-orange-500' : 'bg-white/90 dark:bg-slate-900/90 text-gray-700 dark:text-gray-300 border-white/20 hover:bg-gray-50'">
+                🔥 Kepadatan
+            </button>
+            
+            <button @click="toggleLayer('standard')" 
+                    class="p-3 rounded-xl backdrop-blur-md border transition-all shadow-lg font-bold text-xs flex items-center gap-2"
+                    :class="activeLayer === 'standard' ? 'bg-black text-white border-black' : 'bg-white/90 dark:bg-slate-900/90 text-gray-700 dark:text-gray-300 border-white/20 hover:bg-gray-50'">
+                🗺️ Standard
+            </button>
+        </div>
 
         <div x-show="selectedPlace" 
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             class="absolute bottom-6 left-6 right-6 lg:left-auto lg:right-6 lg:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-[500]"
+             x-transition:enter-start="opacity-0 translate-y-10 scale-90"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             class="absolute bottom-6 left-6 right-6 lg:left-auto lg:right-6 lg:w-80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-4 z-[50] ring-1 ring-black/5"
              style="display: none;">
             
             <template x-if="selectedPlace">
                 <div>
-                    <div class="relative h-32 rounded-xl overflow-hidden mb-3">
-                        <img :src="selectedPlace.image_url" class="w-full h-full object-cover">
-                        <button @click="selectedPlace = null; selectedId = null" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full hover:bg-black">
+                    <div class="relative h-40 rounded-2xl overflow-hidden mb-4 group">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                        <img :src="selectedPlace.image_url" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        
+                        <button @click="selectedPlace = null; selectedId = null" class="absolute top-2 right-2 bg-black/40 text-white p-1.5 rounded-full hover:bg-black/80 backdrop-blur-sm z-20 transition">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
+
+                        <div class="absolute bottom-3 left-3 z-20">
+                            <span class="text-[10px] font-bold bg-white/20 backdrop-blur-md border border-white/30 text-white px-2 py-1 rounded-lg" x-text="selectedPlace.category"></span>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-lg text-gray-900" x-text="selectedPlace.name"></h3>
-                    <p class="text-sm text-gray-500 line-clamp-2 mt-1" x-text="selectedPlace.description"></p>
+
+                    <h3 class="font-black text-xl text-gray-900 dark:text-white leading-tight" x-text="selectedPlace.name"></h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                        📍 <span x-text="selectedPlace.address"></span>
+                    </p>
                     
-                    <a :href="'/place/' + selectedPlace.id" class="mt-4 flex items-center justify-center w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg text-sm shadow-md hover:shadow-lg transition">
-                        Lihat Detail Lengkap →
-                    </a>
+                    <div class="flex gap-2 mt-4">
+                        <a :href="'/place/' + selectedPlace.id" class="flex-1 py-3 bg-black dark:bg-white text-white dark:text-black font-bold rounded-xl text-sm shadow-lg hover:scale-[1.02] transition text-center">
+                            Detail
+                        </a>
+                        <button class="px-4 py-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold text-sm hover:bg-indigo-200 transition">
+                            🗺️ Rute
+                        </button>
+                    </div>
                 </div>
             </template>
         </div>
@@ -123,64 +154,194 @@ class extends Component {
 
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('mapComponent', (placesData) => ({
+            Alpine.data('mapboxComponent', (placesData) => ({
                 map: null,
                 markers: [],
                 places: placesData,
                 selectedId: null,
                 selectedPlace: null,
+                activeLayer: 'standard', // standard, traffic, heatmap
+
+                // --- GANTI TOKEN INI DENGAN TOKEN MAPBOX ANDA ---
+                accessToken: 'pk.eyJ1IjoiYW1haGVlZW4iLCJhIjoiY21rNWxjYzJsMGt3YzNocHd4cWN5dDA0ZyJ9.ywMaHVQIR3VvID3cVIo8Fw”', 
 
                 initMap() {
-                    // 1. Inisialisasi Peta
-                    this.map = L.map('leaflet-map', { zoomControl: false }).setView([-6.244229, 106.802870], 13);
-                    
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                        attribution: '&copy; OpenStreetMap &copy; CARTO',
-                        maxZoom: 20
-                    }).addTo(this.map);
+                    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1haGVlZW4iLCJhIjoiY21rNWxjYzJsMGt3YzNocHd4cWN5dDA0ZyJ9.ywMaHVQIR3VvID3cVIo8Fw”'; // GANTI TOKEN DISINI JUGA!
 
-                    L.control.zoom({ position: 'topright' }).addTo(this.map);
-
-                    // 2. Render Marker Awal
-                    this.updateMarkers(this.places);
-
-                    // 3. Listener: Saat user klik item di sidebar
-                    window.addEventListener('focus-map', (e) => {
-                        const { lat, lng, id } = e.detail;
-                        this.map.flyTo([lat, lng], 16, { duration: 1.5 });
-                        this.selectPlace(id);
+                    this.map = new mapboxgl.Map({
+                        container: 'map',
+                        style: 'mapbox://styles/mapbox/streets-v12', // Style default
+                        center: [106.802870, -6.244229], // Jakarta Selatan
+                        zoom: 13,
+                        pitch: 45, // Efek 3D
                     });
 
-                    // 4. Listener: Saat Livewire mengupdate data (filter)
+                    this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+                    this.map.on('load', () => {
+                        this.addHeatmapSource();
+                        this.addMarkers();
+                    });
+
+                    // Listener untuk update data dari Livewire (Search/Filter)
                     this.$watch('places', (newPlaces) => {
-                        this.updateMarkers(newPlaces);
+                        this.markers.forEach(m => m.remove()); // Hapus marker lama
+                        this.markers = [];
+                        this.addMarkers(newPlaces);
+                        this.updateHeatmapSource(newPlaces); // Update data heatmap
                     });
                 },
 
-                updateMarkers(newPlaces) {
-                    // Hapus marker lama
-                    this.markers.forEach(m => this.map.removeLayer(m));
-                    this.markers = [];
+                addMarkers(data = this.places) {
+                    if (this.activeLayer === 'heatmap') return; // Jangan show marker kalau lagi mode heatmap
 
-                    // Tambah marker baru
-                    newPlaces.forEach(place => {
-                        const marker = L.marker([place.latitude, place.longitude])
-                            .addTo(this.map)
-                            .on('click', () => {
-                                this.selectPlace(place.id);
-                                this.map.flyTo([place.latitude, place.longitude], 16, { duration: 1 });
-                            });
-                        
+                    data.forEach(place => {
+                        // Create Custom HTML Marker
+                        const el = document.createElement('div');
+                        el.className = 'custom-marker';
+                        el.style.backgroundImage = `url(${place.image_url})`;
+                        el.style.width = '40px';
+                        el.style.height = '40px';
+
+                        // Add to Map
+                        const marker = new mapboxgl.Marker(el)
+                            .setLngLat([place.longitude, place.latitude])
+                            .addTo(this.map);
+
+                        // Click Event
+                        el.addEventListener('click', () => {
+                            this.flyToLocation(place.latitude, place.longitude, place.id);
+                        });
+
                         this.markers.push(marker);
                     });
                 },
 
-                selectPlace(id) {
+                flyToLocation(lat, lng, id) {
+                    this.map.flyTo({
+                        center: [lng, lat],
+                        zoom: 16,
+                        pitch: 60,
+                        bearing: 20,
+                        essential: true,
+                        speed: 1.2
+                    });
                     this.selectedId = id;
-                    // Cari data lengkap dari array places
-                    // Kita ambil dari data awal PHP yang di-pass ke Alpine, atau fetch ulang jika perlu
-                    // Untuk simpelnya, kita cari di data yang ada sekarang
                     this.selectedPlace = this.places.find(p => p.id === id);
+                },
+
+                toggleLayer(layerType) {
+                    this.activeLayer = layerType;
+
+                    if (layerType === 'traffic') {
+                        // Ganti ke style Traffic
+                        this.map.setStyle('mapbox://styles/mapbox/traffic-day-v2');
+                        this.map.once('style.load', () => {
+                            this.addMarkers(); // Marker perlu di-add ulang setelah ganti style
+                            this.addHeatmapSource(); // Source juga
+                        });
+                    } 
+                    else if (layerType === 'heatmap') {
+                        // Ganti ke style Dark agar heatmap menyala
+                        this.map.setStyle('mapbox://styles/mapbox/dark-v11');
+                        this.map.once('style.load', () => {
+                            this.addHeatmapSource(); 
+                            this.enableHeatmapLayer();
+                            // Sembunyikan marker biasa
+                            this.markers.forEach(m => m.remove());
+                        });
+                    } 
+                    else {
+                        // Balik ke Standard
+                        this.map.setStyle('mapbox://styles/mapbox/streets-v12');
+                        this.map.once('style.load', () => {
+                            this.addMarkers();
+                            this.addHeatmapSource();
+                        });
+                    }
+                },
+
+                // --- HEATMAP LOGIC ---
+                
+                getGeoJson(data) {
+                    return {
+                        type: 'FeatureCollection',
+                        features: data.map(place => ({
+                            type: 'Feature',
+                            properties: {
+                                // Konversi 'penuh' jadi angka tinggi agar merah
+                                intensity: place.crowd_level === 'penuh' ? 1 : (place.crowd_level === 'ramai' ? 0.6 : 0.2)
+                            },
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [place.longitude, place.latitude]
+                            }
+                        }))
+                    };
+                },
+
+                addHeatmapSource() {
+                    if (this.map.getSource('crowd-data')) return;
+
+                    this.map.addSource('crowd-data', {
+                        type: 'geojson',
+                        data: this.getGeoJson(this.places)
+                    });
+                },
+
+                updateHeatmapSource(newData) {
+                    const source = this.map.getSource('crowd-data');
+                    if (source) {
+                        source.setData(this.getGeoJson(newData));
+                    }
+                },
+
+                enableHeatmapLayer() {
+                    // 1. Layer Heatmap (Blurry)
+                    this.map.addLayer({
+                        id: 'crowd-heat',
+                        type: 'heatmap',
+                        source: 'crowd-data',
+                        paint: {
+                            // Bobot berdasarkan properti 'intensity'
+                            'heatmap-weight': [
+                                'interpolate', ['linear'], ['get', 'intensity'],
+                                0, 0,
+                                1, 1
+                            ],
+                            // Warna dari Hijau (sepi) ke Merah (padat)
+                            'heatmap-color': [
+                                'interpolate', ['linear'], ['heatmap-density'],
+                                0, 'rgba(33,102,172,0)',
+                                0.2, 'rgb(103,169,207)',
+                                0.4, 'rgb(209,229,240)',
+                                0.6, 'rgb(253,219,199)',
+                                0.8, 'rgb(239,138,98)',
+                                1, 'rgb(178,24,43)'
+                            ],
+                            'heatmap-radius': 30,
+                            'heatmap-opacity': 0.8
+                        }
+                    });
+
+                    // 2. Layer Titik (Circle) untuk zoom dekat
+                    this.map.addLayer({
+                        id: 'crowd-point',
+                        type: 'circle',
+                        source: 'crowd-data',
+                        minzoom: 14,
+                        paint: {
+                            'circle-radius': 8,
+                            'circle-color': [
+                                'interpolate', ['linear'], ['get', 'intensity'],
+                                0.2, '#67a9cf',
+                                1, '#b2182b'
+                            ],
+                            'circle-stroke-color': 'white',
+                            'circle-stroke-width': 2,
+                            'circle-opacity': 0.8
+                        }
+                    });
                 }
             }))
         })

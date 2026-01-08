@@ -14,8 +14,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (config('app.env') === 'production') {
-            URL::forceScheme('https');
-        }
+    // HTTPS Force logic (yang sebelumnya sudah ada)
+    if (config('app.env') === 'production') {
+        \Illuminate\Support\Facades\URL::forceScheme('https');
+    }
+
+    // Language Logic
+    if (session()->has('locale')) {
+        app()->setLocale(session('locale'));
+    }
     }
 }
