@@ -1,73 +1,53 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Auth; // Jangan lupa ini!
 use Livewire\Volt\Volt;
+use App\Http\Controllers\BusinessController;
 
-// --- BAGIAN 1: KALCER.ID (PUBLIC) ---
+// --- BAGIAN 1: PUBLIC PAGES ---
 
-// Halaman Utama
 Volt::route('/', 'pages.home')->name('home');
-
-// Halaman Detail
+Volt::route('/maps', 'pages.maps')->name('maps');
+Volt::route('/trending', 'pages.trending')->name('trending');
+Volt::route('/about', 'pages.about')->name('about');
 Volt::route('/place/{place}', 'pages.show')->name('place.show');
 
-// Halaman Maps
-Volt::route('/maps', 'pages.maps')->name('maps');
-
-// Halaman Trending
-Volt::route('/trending', 'pages.trending')->name('trending');
-
-// Halaman About & Contact
-Volt::route('/about', 'pages.about')->name('about');
-
-// Halaman Search (Jika ada)
-Volt::route('/search', 'pages.search')->name('search');
-
-// Halaman Categories (Jika ada)
-Volt::route('/categories', 'pages.categories')->name('categories');
-
-// Redirect /business ke dashboard
-Route::redirect('/business', '/business/dashboard');
-
-// Halaman Auth (Login & Register via Volt)
+// --- BAGIAN 2: AUTHENTICATION (Volt) ---
+// Kita pakai Volt untuk Login/Register agar bisa Custom Redirect (User vs Business)
 Volt::route('/login', 'auth.login')->name('login');
 Volt::route('/register', 'auth.register')->name('register');
 
-
-// --- BAGIAN 2: DASHBOARD & SETTINGS (LOGIN REQUIRED) ---
-
-// Route Logout Manual
+// Route Logout Manual (Penting untuk Navbar)
 Route::post('/logout', function () {
     Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
+    session()->invalidate();
+    session()->regenerateToken();
     return redirect('/');
 })->name('logout');
 
+
+// --- BAGIAN 3: DASHBOARD & FITUR KHUSUS ---
+
+// Redirect Dashboard Cerdas (Cek Role)
+Route::get('/dashboard', function () {
+    if (Auth::user()->role === 'business_owner') {
+        return redirect()->route('business.dashboard');
+    }
+    return redirect()->route('profile.edit');
+})->middleware(['auth'])->name('dashboard');
+
 // Group Route khusus Business Owner
 Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\BusinessController::class, 'index'])->name('dashboard');
-    Route::post('/claim', [App\Http\Controllers\BusinessController::class, 'claim'])->name('claim');
-    Route::post('/promo/{id}', [App\Http\Controllers\BusinessController::class, 'updatePromo'])->name('promo');
+    Route::get('/dashboard', [BusinessController::class, 'index'])->name('dashboard');
+    Route::post('/claim', [BusinessController::class, 'claim'])->name('claim');
+    Route::post('/promo/{id}', [BusinessController::class, 'updatePromo'])->name('promo');
 });
 
-// Dashboard User Biasa (Settings dll)
+// Group Settings untuk User Biasa
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('dashboard', 'settings/profile')->name('dashboard');
     Route::redirect('settings', 'settings/profile');
-
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
-    
-    // Two Factor Auth Logic
-    Volt::route('settings/two-factor', 'settings.two-factor')
-        ->middleware(
-            \Laravel\Fortify\Features::canManageTwoFactorAuthentication()
-            && \Laravel\Fortify\Features::optionEnabled(\Laravel\Fortify\Features::twoFactorAuthentication(), 'confirmPassword')
-            ? ['password.confirm']
-            : []
-        )->name('two-factor.show');
 });

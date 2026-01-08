@@ -14,8 +14,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // HANYA paksa HTTPS jika di Production (Railway).
-        // Di Localhost, biarkan HTTP agar tidak BLANK.
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }

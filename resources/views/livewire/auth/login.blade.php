@@ -3,7 +3,6 @@
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Volt\Component;
 
@@ -12,6 +11,7 @@ new class extends Component {
     public string $password = '';
     public bool $remember = false;
 
+    // Fungsi dummy untuk mencegah error browser extension
     public function toJSON() { return; }
 
     public function login(): void
@@ -29,7 +29,7 @@ new class extends Component {
 
         session()->regenerate();
 
-        // Redirect Cerdas
+        // LOGIKA REDIRECT: Pemilik Usaha ke Dashboard Bisnis, User Biasa ke Home
         if (Auth::user()->role === 'business_owner') {
             $this->redirect(route('business.dashboard'), navigate: true);
         } else {
@@ -40,29 +40,27 @@ new class extends Component {
 
 <x-layouts.auth>
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to Kalcer.id')" :description="__('Enter your email and password below')" />
-
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        <x-auth-header title="Selamat Datang" description="Masuk untuk melanjutkan" />
 
         <form wire:submit="login" class="flex flex-col gap-6">
             
-            <flux:input wire:model="email" label="Email" type="email" required autofocus placeholder="email@example.com" />
+            <flux:input wire:model="email" label="Email" type="email" required autofocus placeholder="email@contoh.com" />
 
             <div class="relative">
                 <flux:input wire:model="password" label="Password" type="password" required viewable placeholder="Password" />
             </div>
 
-            <flux:checkbox wire:model="remember" label="Remember me" />
+            <flux:checkbox wire:model="remember" label="Ingat saya" />
 
             <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full">
-                    {{ __('Log in') }}
+                <flux:button variant="primary" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                    Masuk
                 </flux:button>
             </div>
         </form>
 
         <div class="text-center text-sm text-zinc-600">
-            Don't have an account? <flux:link :href="route('register')" wire:navigate>Sign up</flux:link>
+            Belum punya akun? <flux:link :href="route('register')" wire:navigate class="font-bold text-indigo-600">Daftar sekarang</flux:link>
         </div>
     </div>
 </x-layouts.auth>
