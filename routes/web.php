@@ -1,12 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
-use Illuminate\Support\Facades\Artisan;
-use Laravel\Fortify\Fortify;
-use Livewire\Livewire;
-
 
 // --- BAGIAN 1: KALCER.ID (PUBLIC) ---
 
@@ -16,53 +13,61 @@ Volt::route('/', 'pages.home')->name('home');
 // Halaman Detail
 Volt::route('/place/{place}', 'pages.show')->name('place.show');
 
-// ... route home ...
-
-// Halaman Maps (Split Screen)
+// Halaman Maps
 Volt::route('/maps', 'pages.maps')->name('maps');
-
-// ... route maps ...
 
 // Halaman Trending
 Volt::route('/trending', 'pages.trending')->name('trending');
 
-// ... route trending ...
-
 // Halaman About & Contact
 Volt::route('/about', 'pages.about')->name('about');
 
+// Halaman Search (Jika ada)
+Volt::route('/search', 'pages.search')->name('search');
+
+// Halaman Categories (Jika ada)
+Volt::route('/categories', 'pages.categories')->name('categories');
+
+// Redirect /business ke dashboard
+Route::redirect('/business', '/business/dashboard');
+
+// Halaman Auth (Login & Register via Volt)
+Volt::route('/login', 'auth.login')->name('login');
+Volt::route('/register', 'auth.register')->name('register');
+
+
 // --- BAGIAN 2: DASHBOARD & SETTINGS (LOGIN REQUIRED) ---
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// Route Logout Manual
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
 
+// Group Route khusus Business Owner
+Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\BusinessController::class, 'index'])->name('dashboard');
+    Route::post('/claim', [App\Http\Controllers\BusinessController::class, 'claim'])->name('claim');
+    Route::post('/promo/{id}', [App\Http\Controllers\BusinessController::class, 'updatePromo'])->name('promo');
+});
+
+// Dashboard User Biasa (Settings dll)
 Route::middleware(['auth'])->group(function () {
-    // Redirect /settings ke /settings/profile
+    Route::redirect('dashboard', 'settings/profile')->name('dashboard');
     Route::redirect('settings', 'settings/profile');
 
-    // 1. Profile Settings
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
-
-    // 2. Password Settings (NAMA ROUTE DISESUAIKAN)
-    // View bawaan mencari 'user-password.edit', bukan 'password.edit'
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
-
-    // 3. Appearance Settings (NAMA ROUTE DISESUAIKAN)
-    // View bawaan mencari 'appearance.edit', bukan 'appearance'
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
-
-    // 4. Two Factor Auth
+    
+    // Two Factor Auth Logic
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
-            when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                [],
-            ),
-        )
-        ->name('two-factor.show');
-
-    
+            \Laravel\Fortify\Features::canManageTwoFactorAuthentication()
+            && \Laravel\Fortify\Features::optionEnabled(\Laravel\Fortify\Features::twoFactorAuthentication(), 'confirmPassword')
+            ? ['password.confirm']
+            : []
+        )->name('two-factor.show');
 });

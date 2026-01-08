@@ -7,19 +7,17 @@ use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
-        {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+    {
+        // HANYA paksa HTTPS jika di Production (Railway).
+        // Di Localhost, biarkan HTTP agar tidak BLANK.
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
         }
+    }
 }

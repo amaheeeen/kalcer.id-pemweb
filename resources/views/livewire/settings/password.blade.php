@@ -14,21 +14,20 @@ new class extends Component {
     public function updatePassword(): void
     {
         try {
-            $validated = $this->validate([
-                'current_password' => ['required', 'string', 'current_password'],
-                'password' => ['required', 'string', Password::default(), 'confirmed'],
-            ]);
+            $validated = $this->validate();
         } catch (ValidationException $e) {
             $this->reset('current_password', 'password', 'password_confirmation');
             throw $e;
         }
 
-        Auth::user()->update([
+        /** @var \App\Models\User $user */ // Tambahkan ini untuk membantu VS Code
+        $user = Auth::user();
+
+        $user->update([ // Sekarang 'update' dikenali
             'password' => Hash::make($validated['password']),
         ]);
 
-        $this->reset('current_password', 'password', 'password_confirmation');
-        $this->dispatch('password-updated');
+        // 
     }
 }; ?>
 

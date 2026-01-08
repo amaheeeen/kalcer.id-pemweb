@@ -6,7 +6,6 @@ use Livewire\Attributes\Layout;
 new 
 #[Layout('components.layouts.app')] 
 class extends Component {
-    // Tidak ada logic khusus, cuma view statis
 }; ?>
 
 <div class="bg-white font-sans text-gray-900">
