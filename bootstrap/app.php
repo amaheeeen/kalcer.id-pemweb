@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Mendaftarkan Alias Middleware
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'business' => \App\Http\Middleware\IsBusiness::class, // Middleware Pemilik Usaha
             'is_admin' => \App\Http\Middleware\IsAdmin::class,    // Middleware Administrator (Baru)
