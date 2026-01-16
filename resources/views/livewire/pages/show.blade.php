@@ -1,132 +1,348 @@
 <?php
 
-use App\Models\HangoutPlace;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
+use App\Models\HangoutPlace;
+use App\Models\Review;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 new 
-#[Layout('components.layouts.app')] 
+#[Layout('components.layouts.app')]
 class extends Component {
     public HangoutPlace $place;
+
+    // Review State
+    #[Validate('required|integer|min:1|max:5')] 
+    public $rating = 0; 
+    #[Validate('required|string|min:3|max:500')] 
+    public $content = '';
+
+    // Bookmark State
+    public $isSaved = false;
+
+    public function getIsOpenProperty()
+    {
+        $now = Carbon::now()->hour;
+        return $now >= 10 && $now <= 22;
+    }
 
     public function mount(HangoutPlace $place)
     {
         $this->place = $place;
+
+        if (Auth::check()) {
+            $this->isSaved = Auth::user()->bookmarks()->where('hangout_place_id', $place->id)->exists();
+        }
+    }
+
+    public function toggleBookmark()
+    {
+        if (!Auth::check()) {
+            return $this->redirect(route('login'), navigate: true);
+        }
+
+        Auth::user()->bookmarks()->toggle($this->place->id);
+        
+        $this->isSaved = !$this->isSaved;
+        $msg = $this->isSaved ? 'Disimpan ke wishlist! 📌' : 'Dihapus dari wishlist.';
+        session()->flash('bookmark_status', $msg);
+    }
+
+    public function submitReview()
+    {
+        if (!Auth::check()) return $this->redirect(route('login'), navigate: true);
+        
+        $this->validate();
+
+        Review::create([
+            'user_id' => Auth::id(),
+            'hangout_place_id' => $this->place->id,
+            'rating' => $this->rating,
+            'content' => $this->content
+        ]);
+
+        $this->place->increment('viral_score', 2);
+        $this->reset(['rating', 'content']);
+        session()->flash('message', 'Review berhasil dikirim! Viral score naik 🔥');
+    }
+
+    // --- FITUR KLAIM BISNIS (BARU) ---
+    public function claimBusiness()
+    {
+        // 1. Cek Login
+        if (!Auth::check()) return $this->redirect(route('login'), navigate: true);
+
+        // 2. Validasi: Tempat ini belum ada yang punya
+        if ($this->place->user_id) {
+            session()->flash('claim_error', 'Tempat ini sudah diklaim oleh pemilik lain.');
+            return;
+        }
+
+        // 3. Validasi: User ini belum punya bisnis lain (Aturan MVP: 1 User = 1 Bisnis)
+        if (Auth::user()->business) {
+            session()->flash('claim_error', 'Anda sudah mengelola bisnis lain. Satu akun hanya boleh mengklaim satu tempat.');
+            return;
+        }
+
+        // 4. Proses Klaim
+        $this->place->update(['user_id' => Auth::id()]);
+        
+        // Update Role User jadi Owner
+        Auth::user()->update(['role' => 'business_owner']);
+
+        // 5. Redirect ke Dashboard
+        return $this->redirect(route('business.index'), navigate: true);
     }
 }; ?>
 
-<div class="pb-20">
-    <div class="relative w-full h-[50vh] md:h-[60vh] overflow-hidden">
-        <img src="{{ $place->image_url }}" alt="{{ $place->name }}" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-        
-        <div class="absolute bottom-0 left-0 w-full p-6 md:p-12 max-w-7xl mx-auto text-white">
-            <span class="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block shadow-lg">
-                {{ $place->category }}
-            </span>
-            <h1 class="text-4xl md:text-6xl font-extrabold drop-shadow-md">{{ $place->name }}</h1>
-            <p class="text-gray-200 mt-2 flex items-center gap-2 text-lg font-medium">
-                📍 {{ $place->address }}
-            </p>
+<div class="min-h-screen bg-white dark:bg-zinc-900 pb-20">
+    
+    <div class="relative h-[50vh] md:h-[60vh] w-full overflow-hidden group">
+        <img src="{{ $place->image_url }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105 filter brightness-75">
+        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent"></div>
+
+        <a href="{{ route('explore') }}" wire:navigate class="absolute top-6 left-6 z-20 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+
+        <div class="absolute bottom-0 left-0 right-0 p-6 md:p-10 z-20">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-xs font-bold text-white uppercase tracking-wider">
+                        {{ $place->category }}
+                    </span>
+                    <span class="px-3 py-1 bg-yellow-500 rounded-full text-xs font-bold text-black uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-star"></i> {{ $place->avg_rating }} / 5.0
+                    </span>
+                </div>
+
+                <h1 class="text-4xl md:text-6xl font-black font-syne text-white leading-tight mb-2 drop-shadow-lg">
+                    {{ $place->name }}
+                </h1>
+                
+                <p class="text-zinc-300 text-sm md:text-base flex items-center gap-2 max-w-2xl">
+                    <i class="fa-solid fa-location-dot text-indigo-400"></i>
+                    {{ $place->address }}
+                </p>
+            </div>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-30">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4 border-l-4 border-purple-500 pl-3">Tentang Tempat Ini</h2>
-                    <p class="text-gray-600 leading-relaxed text-lg">
+                
+                <div class="bg-white dark:bg-zinc-800 rounded-3xl p-6 shadow-xl border border-zinc-100 dark:border-zinc-700 flex justify-around items-center text-center">
+                    <div>
+                        <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Status</p>
+                        @if($this->isOpen)
+                            <span class="text-green-500 font-bold text-sm flex items-center gap-1 justify-center"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> BUKA</span>
+                        @else
+                            <span class="text-red-500 font-bold text-sm">TUTUP</span>
+                        @endif
+                    </div>
+                    <div class="w-px h-10 bg-zinc-200 dark:bg-zinc-700"></div>
+                    <div>
+                        <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Crowd</p>
+                        <span class="text-zinc-900 dark:text-white font-bold text-sm">{{ ucfirst($place->crowd_level) }}</span>
+                    </div>
+                    <div class="w-px h-10 bg-zinc-200 dark:bg-zinc-700"></div>
+                    <div>
+                        <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Views</p>
+                        <span class="text-indigo-500 font-bold text-sm">{{ number_format($place->profile_views) }}</span>
+                    </div>
+                </div>
+
+                @if($place->promo_text && \Carbon\Carbon::parse($place->promo_expires_at)->isFuture())
+                    <div class="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="relative z-10 flex items-start gap-4">
+                            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                                <i class="fa-solid fa-tags text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg mb-1">Special Offer! 🔥</h3>
+                                <p class="text-indigo-100 text-sm leading-relaxed mb-3">
+                                    {{ $place->promo_text }}
+                                </p>
+                                <div class="text-xs font-mono bg-black/20 px-3 py-1 rounded inline-block">
+                                    Berlaku sampai {{ \Carbon\Carbon::parse($place->promo_expires_at)->format('d M Y') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="prose dark:prose-invert max-w-none">
+                    <h3 class="text-xl font-bold font-syne mb-3 text-zinc-900 dark:text-white">Tentang Tempat Ini</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed">
                         {{ $place->description }}
                     </p>
+                </div>
 
-                    <div class="mt-8">
-                        <h3 class="font-bold text-gray-900 mb-3">Fasilitas</h3>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($place->facilities ?? [] as $facility)
-                                <span class="px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-sm font-medium border border-gray-100">
-                                    ✨ {{ $facility }}
-                                </span>
+                <div>
+                    <h3 class="text-xl font-bold font-syne mb-4 text-zinc-900 dark:text-white">Fasilitas</h3>
+                    <div class="flex flex-wrap gap-3">
+                        @if(is_array($place->facilities))
+                            @foreach($place->facilities as $facility)
+                                <div class="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-sm font-medium flex items-center gap-2 border border-zinc-200 dark:border-zinc-700">
+                                    <i class="fa-solid fa-check text-indigo-500"></i> {{ $facility }}
+                                </div>
                             @endforeach
-                        </div>
+                        @else
+                            <p class="text-zinc-500 italic text-sm">Tidak ada data fasilitas.</p>
+                        @endif
                     </div>
                 </div>
-                
-                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 overflow-hidden">
-                    <div id="map" class="w-full h-[350px] rounded-xl z-0"></div>
-                </div>
-            </div>
 
-            <div class="lg:col-span-1 space-y-6">
-                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+                <div class="pt-8 border-t border-zinc-200 dark:border-zinc-800" id="reviews">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold font-syne text-zinc-900 dark:text-white">
+                            Kata Netizen ({{ $place->reviews->count() }})
+                        </h3>
+                    </div>
+
+                    @if (session()->has('message'))
+                        <div class="mb-4 p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-xl text-sm font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> {{ session('message') }}
+                        </div>
+                    @endif
                     
-                    <div class="relative z-10">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Viral Score</div>
-                        <div class="flex items-end gap-1 mt-1">
-                            <span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">{{ $place->viral_score }}</span>
-                            <span class="text-gray-400 font-bold mb-1">/100</span>
+                    @auth
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl mb-8 border border-zinc-200 dark:border-zinc-700">
+                            <h4 class="font-bold text-zinc-900 dark:text-white mb-4">Gimana pengalamanmu?</h4>
+                            <form wire:submit="submitReview">
+                                <div class="flex gap-2 mb-4">
+                                    @for($i=1; $i<=5; $i++)
+                                        <button type="button" wire:click="$set('rating', {{ $i }})" class="text-2xl transition hover:scale-110 {{ $rating >= $i ? 'text-yellow-400' : 'text-zinc-300 dark:text-zinc-600' }}">
+                                            <i class="fa-solid fa-star"></i>
+                                        </button>
+                                    @endfor
+                                    @error('rating') <span class="text-red-500 text-xs ml-2 mt-2">{{ $message }}</span> @enderror
+                                </div>
+                                <textarea wire:model="content" placeholder="Ceritain dong, makanannya enak? WiFi kenceng?..." class="w-full bg-white dark:bg-zinc-900 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white placeholder-zinc-400 mb-2 h-24 resize-none"></textarea>
+                                @error('content') <span class="text-red-500 text-xs block mb-2">{{ $message }}</span> @enderror
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-xl text-sm transition shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+                                    <i class="fa-solid fa-paper-plane"></i> Kirim Review
+                                </button>
+                            </form>
                         </div>
-
-                        <hr class="my-4 border-gray-100">
-
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-500 text-sm">Crowd Level</span>
-                                @php
-                                    $colors = [
-                                        'sepi' => 'bg-green-100 text-green-700',
-                                        'sedang' => 'bg-yellow-100 text-yellow-700',
-                                        'ramai' => 'bg-orange-100 text-orange-700',
-                                        'penuh' => 'bg-red-100 text-red-700'
-                                    ];
-                                    $bgClass = $colors[$place->crowd_level] ?? 'bg-gray-100 text-gray-700';
-                                @endphp
-                                <span class="{{ $bgClass }} px-3 py-1 rounded-full text-xs font-bold uppercase">
-                                    {{ $place->crowd_level }}
-                                </span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-500 text-sm">Operational</span>
-                                <span class="font-medium text-gray-900 text-sm">{{ $place->operational_hours }}</span>
-                            </div>
+                    @else
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-3xl mb-8 border border-indigo-100 dark:border-indigo-500/20 text-center">
+                            <p class="text-indigo-800 dark:text-indigo-300 font-bold mb-2">Mau kasih review?</p>
+                            <a href="{{ route('login') }}" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold">Login Sekarang</a>
                         </div>
+                    @endauth
 
-                        <a href="https://maps.google.com/?q={{ $place->latitude }},{{ $place->longitude }}" target="_blank" class="mt-6 block w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center shadow-lg hover:shadow-purple-200 transition transform hover:-translate-y-0.5">
-                            Navigasi Google Maps 🚀
-                        </a>
+                    <div class="space-y-6">
+                        @forelse($place->reviews as $review)
+                            <div class="flex gap-4">
+                                <div class="shrink-0 w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center font-bold text-zinc-500 dark:text-zinc-400">
+                                    {{ substr($review->user->name, 0, 1) }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <h5 class="font-bold text-zinc-900 dark:text-white text-sm">{{ $review->user->name }}</h5>
+                                        <span class="text-xs text-zinc-400">{{ $review->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <div class="flex text-yellow-400 text-xs mb-2">
+                                        @for($j=1; $j<=5; $j++)
+                                            <i class="{{ $j <= $review->rating ? 'fa-solid' : 'fa-regular' }} fa-star"></i>
+                                        @endfor
+                                    </div>
+                                    <p class="text-zinc-600 dark:text-zinc-300 text-sm leading-relaxed bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl rounded-tl-none">
+                                        {{ $review->content }}
+                                    </p>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-8">
+                                <p class="text-zinc-400 italic text-sm">Belum ada review. Jadilah yang pertama!</p>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
+
+            <div class="lg:col-span-1">
+                <div class="sticky top-24 space-y-4">
+                    
+                    <div class="rounded-3xl overflow-hidden h-48 relative border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/{{ $place->longitude }},{{ $place->latitude }},14,0/400x300?access_token={{ 'pk.eyJ1Ijoiam9uYXRoYW5maWwiLCJhIjoiY2t5dnB5bHlxMDB2aDJ2cnW5dm16c2h5ayJ9.0a9tV8wRno4n1J8YJjWzgw' }}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/10 transition">
+                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ $place->latitude }},{{ $place->longitude }}" target="_blank" class="px-4 py-2 bg-white text-black font-bold text-xs rounded-full shadow-lg hover:scale-105 transition">
+                                <i class="fa-solid fa-map"></i> Buka Peta
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ $place->latitude }},{{ $place->longitude }}" target="_blank" class="block w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-2xl shadow-lg shadow-indigo-500/20 transition transform hover:-translate-y-1">
+                        <i class="fa-solid fa-location-arrow mr-2"></i> Petunjuk Arah
+                    </a>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <button wire:click="toggleBookmark" class="py-3 bg-white dark:bg-zinc-800 border {{ $isSaved ? 'border-indigo-500 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200' }} font-bold rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-700 transition flex items-center justify-center gap-2">
+                            <i class="{{ $isSaved ? 'fa-solid' : 'fa-regular' }} fa-bookmark"></i> 
+                            {{ $isSaved ? 'Disimpan' : 'Simpan' }}
+                        </button>
+
+                        <button class="py-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 font-bold rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-700 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-share-nodes"></i> Share
+                        </button>
+                    </div>
+
+                    @if (session()->has('bookmark_status'))
+                        <div class="text-center text-xs font-bold text-indigo-500 animate-pulse">
+                            {{ session('bookmark_status') }}
+                        </div>
+                    @endif
+
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+                        <h4 class="font-bold text-sm text-zinc-900 dark:text-white mb-3 flex items-center gap-2">
+                            <i class="fa-regular fa-clock"></i> Jam Operasional
+                        </h4>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-zinc-500">Senin - Minggu</span>
+                            <span class="text-zinc-800 dark:text-zinc-300 font-medium">{{ $place->operational_hours }}</span>
+                        </div>
+                    </div>
+
+                    @auth
+                        @if (session()->has('claim_error'))
+                            <div class="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-xl text-center">
+                                {{ session('claim_error') }}
+                            </div>
+                        @endif
+
+                        @if(!$place->user_id)
+                            <div class="mt-4 p-4 bg-gradient-to-r from-zinc-900 to-zinc-800 dark:from-zinc-800 dark:to-zinc-700 rounded-2xl border border-zinc-700 text-center relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-indigo-600/20 group-hover:bg-indigo-600/30 transition"></div>
+                                <i class="fa-solid fa-briefcase text-2xl text-white mb-2 relative z-10"></i>
+                                <h4 class="font-bold text-white relative z-10 text-sm">Ini bisnis Anda?</h4>
+                                <p class="text-zinc-400 text-xs mb-3 relative z-10">Klaim sekarang untuk kelola info & pasang promo.</p>
+                                
+                                <button wire:click="claimBusiness" 
+                                        wire:confirm="Apakah Anda yakin ingin mengklaim tempat ini sebagai bisnis Anda?"
+                                        class="relative z-10 w-full py-2 bg-white text-zinc-900 font-bold text-xs rounded-lg hover:bg-zinc-200 transition">
+                                    Klaim Bisnis Ini
+                                </button>
+                            </div>
+                        @elseif($place->user_id === Auth::id())
+                            <div class="mt-4">
+                                <a href="{{ route('business.index') }}" class="block w-full py-3 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold text-center rounded-2xl shadow-lg transition hover:scale-105">
+                                    <i class="fa-solid fa-gauge-high mr-2"></i> Dashboard Bisnis
+                                </a>
+                            </div>
+                        @endif
+                    @endauth
+
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <script>
-        document.addEventListener('livewire:navigated', () => {
-            initMap();
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            initMap();
-        });
-
-        function initMap() {
-            var container = L.DomUtil.get('map');
-            if(container != null) container._leaflet_id = null; else return;
-
-            var lat = {{ $place->latitude }};
-            var lng = {{ $place->longitude }};
-            
-            // Menggunakan tiles yang lebih clean/terang (CartoDB Positron) agar sesuai tema "Clean"
-            var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
-                maxZoom: 20
-            }).addTo(map);
-
-            L.marker([lat, lng]).addTo(map)
-                .bindPopup("<b>{{ $place->name }}</b>")
-                .openPopup();
-        }
-    </script>
 </div>
