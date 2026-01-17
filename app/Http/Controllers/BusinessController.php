@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\HangoutPlace;
-use App\Models\User; // Tambahkan ini untuk data updates
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class BusinessController extends Controller
@@ -116,7 +116,7 @@ class BusinessController extends Controller
     public function adminDashboard()
     {
         // 1. Total Traffic (Jumlah Profile Views seluruh tempat)
-        $totalTraffic = HangoutPlace::sum('profile_views');
+        $totalTraffic = HangoutPlace::sum('profile_views') ?? 0;
         
         // 2. Viral Spots (Tempat dengan score > 80)
         $viralCount = HangoutPlace::where('viral_score', '>', 80)->count();
