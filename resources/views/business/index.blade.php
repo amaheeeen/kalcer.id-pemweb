@@ -31,36 +31,87 @@
         </div>
 
         @if(!$myPlace)
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-zinc-900 border border-zinc-800 p-8 rounded-3xl relative overflow-hidden shadow-xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start bg-zinc-900 border border-zinc-800 p-8 rounded-3xl relative overflow-hidden shadow-xl" x-data="{ mode: 'search' }">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
                 
                 <div class="relative z-10">
-                    <h2 class="text-3xl font-bold text-white mb-4 font-syne">Claim Bisnismu Sekarang! ⚡</h2>
-                    <p class="text-zinc-400 mb-8 leading-relaxed">
-                        Jangan biarkan pelanggan bingung. Klaim listing tempatmu agar bisa atur promo, lihat statistik, dan bikin tempatmu makin rame!
-                    </p>
+                    <h2 class="text-3xl font-bold text-white mb-2 font-syne">Claim Bisnismu Sekarang! ⚡</h2>
+                    
+                    <div class="flex gap-6 mb-6 border-b border-zinc-700">
+                        <button @click="mode = 'search'" 
+                            :class="mode === 'search' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-zinc-500 hover:text-zinc-300'"
+                            class="pb-2 font-bold transition flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Cari di Database
+                        </button>
+                        <button @click="mode = 'manual'" 
+                            :class="mode === 'manual' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-zinc-500 hover:text-zinc-300'"
+                            class="pb-2 font-bold transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Input Manual
+                        </button>
+                    </div>
                     
                     <form action="{{ route('business.claim') }}" method="POST" class="space-y-4">
                         @csrf
-                        <div class="relative group">
-                            <select name="place_id" class="w-full bg-zinc-800 border-2 border-zinc-700 text-white rounded-xl p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none transition hover:border-zinc-600 cursor-pointer">
-                                <option value="">Pilih Lokasi Bisnis...</option>
-                                @foreach(\App\Models\HangoutPlace::whereNull('user_id')->orWhere('is_claimed', false)->get() as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->category }})</option>
-                                @endforeach
-                            </select>
-                            <div class="absolute right-4 top-4 text-zinc-400 pointer-events-none group-hover:text-white transition">
-                                <i class="fa-solid fa-chevron-down"></i>
+                        
+                        <div x-show="mode === 'search'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                            <p class="text-zinc-400 mb-4 text-sm">Cari nama tempatmu yang sudah terdaftar di sistem kami.</p>
+                            <div class="relative group">
+                                <select name="place_id" class="w-full bg-zinc-800 border-2 border-zinc-700 text-white rounded-xl p-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none transition hover:border-zinc-600 cursor-pointer">
+                                    <option value="">-- Pilih Lokasi Bisnis --</option>
+                                    @foreach($availablePlaces as $p)
+                                        <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->category }})</option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute right-4 top-4 text-zinc-400 pointer-events-none group-hover:text-white transition">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </div>
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-store"></i> Klaim Kepemilikan 🔥
+
+                        <div x-show="mode === 'manual'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                            <p class="text-zinc-400 mb-2 text-sm">Tempatmu belum ada? Tambahkan baru sekarang.</p>
+                            
+                            <div>
+                                <label class="text-xs font-bold text-zinc-500 mb-1 block uppercase">Nama Bisnis</label>
+                                <input type="text" name="new_name" placeholder="Contoh: Kopi Senja Jaksel" 
+                                    class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs font-bold text-zinc-500 mb-1 block uppercase">Kategori</label>
+                                <div class="relative">
+                                    <select name="new_category" class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                        <option value="Coffee Shop">Coffee Shop</option>
+                                        <option value="Culinary">Culinary / Resto</option>
+                                        <option value="Public Park">Public Park</option>
+                                        <option value="Creative Space">Creative Space</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-4 top-4 text-zinc-500 pointer-events-none"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-zinc-500 mb-1 block uppercase">Alamat Singkat</label>
+                                <input type="text" name="new_address" placeholder="Contoh: Jl. Cipete Raya No. 10" 
+                                    class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 transition">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 group">
+                            <i class="fa-solid fa-rocket group-hover:-translate-y-1 transition"></i> 
+                            <span x-text="mode === 'search' ? 'Klaim Bisnis Ini' : 'Tambahkan & Klaim'"></span>
                         </button>
                     </form>
                 </div>
                 
-                <div class="hidden md:flex justify-center relative z-10">
-                    <div class="text-[150px] leading-none animate-bounce drop-shadow-2xl">🏪</div>
+                <div class="hidden md:flex flex-col items-center justify-center relative z-10 h-full text-center">
+                    <div class="text-[120px] leading-none animate-bounce drop-shadow-2xl mb-4">🏪</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Kenapa harus gabung?</h3>
+                    <ul class="text-zinc-400 text-sm space-y-2 text-left bg-zinc-800/50 p-6 rounded-2xl border border-zinc-700">
+                        <li>✅ <span class="text-white">Badge Official</span> di halaman explore</li>
+                        <li>✅ Akses ke <span class="text-white">Analitik Pengunjung</span></li>
+                        <li>✅ Pasang <span class="text-white">Promo Spesial</span> sesukamu</li>
+                    </ul>
                 </div>
             </div>
 
