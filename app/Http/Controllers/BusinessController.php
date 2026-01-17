@@ -17,12 +17,20 @@ class BusinessController extends Controller
      */
     public function index()
     {
-        // Ambil tempat milik user yang sedang login (user_id)
-        $myPlace = HangoutPlace::where('user_id', Auth::id())->first();
-        
-        // Pastikan nama file view-nya sesuai, misal: resources/views/business/index.blade.php
-        // atau tetap 'business.dashboard' jika itu view milik owner.
-        return view('business.index', compact('myPlace'));
+    // 1. Ambil bisnis milik user saat ini
+    $myPlace = \App\Models\HangoutPlace::where('user_id', Auth::id())->first();
+    
+    // 2. Ambil daftar tempat yang BELUM diklaim (untuk dropdown di view jika user belum punya bisnis)
+    $availablePlaces = [];
+    if (!$myPlace) {
+        $availablePlaces = \App\Models\HangoutPlace::whereNull('user_id')
+                            ->orWhere('is_claimed', false)
+                            ->orderBy('name')
+                            ->get();
+    }
+
+    // 3. Kirim kedua data tersebut ke View
+    return view('business.index', compact('myPlace', 'availablePlaces'));
     }
 
     /**

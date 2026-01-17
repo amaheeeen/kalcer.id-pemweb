@@ -271,14 +271,31 @@ class extends Component {
             <div class="lg:col-span-1">
                 <div class="sticky top-24 space-y-4">
                     
-                    <div class="rounded-3xl overflow-hidden h-48 relative border border-zinc-200 dark:border-zinc-700">
-                        <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/{{ $place->longitude }},{{ $place->latitude }},14,0/400x300?access_token={{ 'pk.eyJ1Ijoiam9uYXRoYW5maWwiLCJhIjoiY2t5dnB5bHlxMDB2aDJ2cnW5dm16c2h5ayJ9.0a9tV8wRno4n1J8YJjWzgw' }}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/10 transition">
-                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ $place->latitude }},{{ $place->longitude }}" target="_blank" class="px-4 py-2 bg-white text-black font-bold text-xs rounded-full shadow-lg hover:scale-105 transition">
-                                <i class="fa-solid fa-map"></i> Buka Peta
-                            </a>
-                        </div>
+                    <div class="rounded-3xl overflow-hidden h-48 relative border border-zinc-200 dark:border-zinc-700 group">
+                    {{-- 1. Gunakan Google Maps Embed (Gratis & Selalu Muncul) --}}
+                    <iframe 
+                        width="100%" 
+                        height="100%" 
+                        frameborder="0" 
+                        scrolling="no" 
+                        marginheight="0" 
+                        marginwidth="0" 
+                        {{-- Filter CSS ini membuat peta jadi mode gelap (Dark Mode) agar estetik --}}
+                        style="filter: grayscale(100%) invert(92%) contrast(83%); border:0;"
+                        src="https://maps.google.com/maps?q={{ $place->latitude }},{{ $place->longitude }}&hl=id&z=15&output=embed">
+                    </iframe>
+
+                    {{-- 2. Overlay Gelap & Tombol (Diperbaiki Link-nya) --}}
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition duration-300 pointer-events-none">
+                        {{-- pointer-events-auto pada tombol agar bisa diklik --}}
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ $place->latitude }},{{ $place->longitude }}" 
+                        target="_blank" 
+                        class="pointer-events-auto px-5 py-2.5 bg-white text-zinc-900 font-bold text-xs rounded-full shadow-xl hover:scale-105 hover:bg-zinc-100 transition flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 opacity-90 group-hover:opacity-100">
+                            <i class="fa-solid fa-map-location-dot text-indigo-600"></i> Buka di Google Maps
+                        </a>
                     </div>
+
+                </div>
                     
                     <a href="https://www.google.com/maps/dir/?api=1&destination={{ $place->latitude }},{{ $place->longitude }}" target="_blank" class="block w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-2xl shadow-lg shadow-indigo-500/20 transition transform hover:-translate-y-1">
                         <i class="fa-solid fa-location-arrow mr-2"></i> Petunjuk Arah
@@ -307,7 +324,9 @@ class extends Component {
                         </h4>
                         <div class="flex justify-between text-sm mb-2">
                             <span class="text-zinc-500">Senin - Minggu</span>
-                            <span class="text-zinc-800 dark:text-zinc-300 font-medium">{{ $place->operational_hours }}</span>
+                            <span class="text-zinc-800 dark:text-zinc-300 font-medium">
+                                {{ $place->operational_hours ?? '10:00 - 22:00' }}
+                            </span>
                         </div>
                     </div>
 

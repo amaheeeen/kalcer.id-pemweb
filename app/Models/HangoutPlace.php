@@ -2,38 +2,55 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str; 
 
 class HangoutPlace extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
-    // Agar kolom fasilitas otomatis jadi Array saat diambil dari DB
+    // 1. Agar kolom 'facilities' (JSON) bisa dibaca sebagai Array di Blade
     protected $casts = [
-    'facilities' => 'array', 
-    'is_verified' => 'boolean',
-    'is_claimed' => 'boolean',
-    'promo_expires_at' => 'datetime',
-];
+        'facilities' => 'array',
+        'promo_expires_at' => 'datetime',
+    ];
 
-    // Relasi ke Review
+    // --- RELATIONSHIPS (Wajib ada biar $place->reviews tidak error) ---
+    
+    // Relasi ke tabel reviews
     public function reviews()
     {
-        return $this->hasMany(Review::class)->latest(); // Review terbaru di atas
+        return $this->hasMany(Review::class);
     }
 
-    // Helper untuk hitung rata-rata rating otomatis
+    // Relasi ke tabel bookmarks (User yang menyimpan tempat ini)
+    public function bookmarkedBy()
+    {
+        return $this->belongsToMany(User::class, 'bookmarks', 'hangout_place_id', 'user_id');
+    }
+
+    // --- ACCESSORS (Logika Pintar) ---
+
+    // 1. Logika Foto (Yang sudah kita buat)
+    public function getImageUrlAttribute()
+    {
+        if (empty($this->image)) {
+            return 'https://placehold.co/600x400?text=No+Image';
+        }
+        if (Str::startsWith($this->image, ['http://', 'https://'])) {
+            return $this->image;
+        }
+        return asset('storage/' . $this->image);
+    }
+
+    // 2. Logika Rating Rata-rata ($place->avg_rating)
     public function getAvgRatingAttribute()
     {
-        return round($this->reviews()->avg('rating') ?? 0, 1);
-    }
-    
-    // Relasi ke Pemilik (User)
-    public function owner()
-    {
-        return $this->belongsTo(User::class, 'user_id');
+        // Hitung rata-rata dari tabel reviews, bulatkan 1 desimal
+        // Jika belum ada review, kembalikan 0
+        return round($this->reviews()->avg('rating'), 1) ?? 0;
     }
 }
