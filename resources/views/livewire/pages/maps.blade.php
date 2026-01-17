@@ -44,6 +44,7 @@ class extends Component {
     }
 }; ?>
 
+{{-- ROOT ELEMENT (HANYA BOLEH ADA SATU DIV UTAMA) --}}
 <div class="flex flex-col lg:flex-row h-[calc(100vh-64px)] bg-white dark:bg-zinc-900 overflow-hidden relative">
 
     <style>
@@ -144,30 +145,28 @@ class extends Component {
     </div>
     
     <div id="map-data" data-places="{{ json_encode($places) }}" class="hidden"></div>
-</div>
+</div> {{-- PENUTUP DIV UTAMA (JANGAN ADA HTML LAIN SETELAH INI) --}}
 
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
-
+{{-- SCRIPT DIJALANKAN DI LUAR DOM TAPI TETAP DALAM KONTEKS LIVEWIRE --}}
 @script
 <script>
+    // Pastikan token ini benar
     mapboxgl.accessToken = 'pk.eyJ1IjoiYW1haGVlZW4iLCJhIjoiY21rNWxjYzJsMGt3YzNocHd4cWN5dDA0ZyJ9.ywMaHVQIR3VvID3cVIo8Fw';
 
     let map;
     let markers = {}; 
-    let userLocation = [106.8060, -6.2425]; // Default Jakarta Selatan
+    let userLocation = [106.8060, -6.2425]; 
 
-    // 1. Deteksi Dark Mode dari HTML class atau LocalStorage
     const isDarkMode = document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
     const mapStyle = isDarkMode ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11';
 
     function initMap(placesData) {
         map = new mapboxgl.Map({
             container: 'map',
-            style: mapStyle, // <-- Adaptive Style
+            style: mapStyle, 
             center: userLocation,
             zoom: 12,
-            pitch: 45, // Miringkan peta biar 3D
+            pitch: 45, 
             bearing: -17.6,
         });
 
@@ -190,25 +189,24 @@ class extends Component {
                     'line-width': 2,
                     'line-color': [
                         'match', ['get', 'congestion'],
-                        'low', '#4ade80',    // Hijau (Lancar)
-                        'moderate', '#facc15', // Kuning (Padat)
-                        'heavy', '#ef4444',    // Merah (Macet)
-                        'severe', '#991b1b',   // Merah Tua (Macet Parah)
+                        'low', '#4ade80',    
+                        'moderate', '#facc15', 
+                        'heavy', '#ef4444',    
+                        'severe', '#991b1b',   
                         '#000000'
                     ],
-                    'line-opacity': 0.6 // Transparan biar ga nutupin jalan
+                    'line-opacity': 0.6 
                 }
             });
 
-            // --- B. HEATMAP / CROWD LAYER ---
-            // Kita ubah data Places jadi GeoJSON
+            // --- B. HEATMAP ---
             const geoJsonData = {
                 type: 'FeatureCollection',
                 features: placesData.map(place => ({
                     type: 'Feature',
                     geometry: { type: 'Point', coordinates: [place.longitude, place.latitude] },
                     properties: { 
-                        viral_score: place.viral_score, // Nilai intensitas
+                        viral_score: place.viral_score, 
                         id: place.id 
                     }
                 }))
@@ -222,11 +220,8 @@ class extends Component {
                 source: 'places-heat',
                 maxzoom: 15,
                 paint: {
-                    // Semakin viral (score tinggi), semakin intens warnanya
                     'heatmap-weight': ['interpolate', ['linear'], ['get', 'viral_score'], 0, 0, 100, 1],
-                    // Intensitas berdasarkan zoom
                     'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, 15, 3],
-                    // Warna Heatmap: Biru (Sepi) -> Kuning -> Merah (Ramai)
                     'heatmap-color': [
                         'interpolate', ['linear'], ['heatmap-density'],
                         0, 'rgba(33,102,172,0)',
@@ -234,14 +229,14 @@ class extends Component {
                         0.4, 'rgb(209,229,240)',
                         0.6, 'rgb(253,219,199)',
                         0.8, 'rgb(239,138,98)',
-                        1, 'rgb(178,24,43)' // Merah Pekat
+                        1, 'rgb(178,24,43)' 
                     ],
                     'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 15, 20],
                     'heatmap-opacity': 0.7
                 }
             });
 
-            // --- C. RENDER MARKER & USER ---
+            // --- C. RENDER MARKERS ---
             setupUserLocation();
             renderMarkers(placesData);
         });
@@ -265,7 +260,6 @@ class extends Component {
 
         places.forEach(place => {
             const el = document.createElement('div');
-            // Warna marker berdasarkan viral score
             const color = place.viral_score > 85 ? '#ef4444' : (place.viral_score > 60 ? '#f59e0b' : '#10b981');
             
             el.innerHTML = `
@@ -278,7 +272,6 @@ class extends Component {
                 </div>
             `;
             
-            // Popup HTML
             const popupHTML = `
                 <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden shadow-2xl w-56 font-sans">
                     <div class="relative h-28 w-full">
@@ -321,14 +314,11 @@ class extends Component {
         });
     }
 
-    // Fungsi Trigger dari Sidebar
     window.flyToLocation = (element) => {
         const lng = parseFloat(element.dataset.lng);
         const lat = parseFloat(element.dataset.lat);
         const id = element.dataset.id;
-
         map.flyTo({ center: [lng, lat], zoom: 17, essential: true, pitch: 50 });
-        
         if (markers[id]) markers[id].togglePopup();
     };
 
@@ -337,7 +327,6 @@ class extends Component {
 
     Livewire.on('update-map-markers', ({ places }) => {
         renderMarkers(places);
-        // Update data heatmap juga kalau filter berubah
         const geoJsonData = {
             type: 'FeatureCollection',
             features: places.map(place => ({
@@ -350,7 +339,5 @@ class extends Component {
             map.getSource('places-heat').setData(geoJsonData);
         }
     });
-
 </script>
 @endscript
-</div>
