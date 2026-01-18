@@ -55,8 +55,9 @@ class BusinessController extends Controller
             }
 
             $place->update([
-                'user_id' => Auth::id(), 
-                'is_claimed' => true
+                'user_id'     => Auth::id(), 
+                'is_claimed'  => true,
+                'is_verified' => false // [UPDATE] Set ke False (Pending) menunggu admin
             ]);
         } 
         // SKENARIO 2: User input manual tempat baru (Manual Add)
@@ -75,6 +76,7 @@ class BusinessController extends Controller
                 'description'   => 'Tempat hangout baru yang sedang hits.',
                 'image_url'     => 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop', // Default Image
                 'is_claimed'    => true,
+                'is_verified'   => false, // [UPDATE] Set ke False (Pending)
                 'viral_score'   => 50, // Score awal standard
                 'profile_views' => 0,
                 'latitude'      => (float) $randomLat,
@@ -84,7 +86,8 @@ class BusinessController extends Controller
             return back()->with('error', 'Gagal memproses. Mohon pilih tempat atau isi data baru.');
         }
 
-        return back()->with('success', 'Selamat! Bisnis berhasil ditambahkan ke akun Anda.');
+        // [UPDATE] Pesan sukses diubah agar user tahu harus menunggu
+        return back()->with('success', 'Permintaan klaim berhasil dikirim! Mohon tunggu verifikasi Admin 1x24 jam.');
     }
 
     /**
@@ -93,6 +96,11 @@ class BusinessController extends Controller
     public function updatePromo(Request $request, $id)
     {
         $place = HangoutPlace::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
+        // Cek apakah sudah diverifikasi admin
+        if (!$place->is_verified) {
+            return back()->with('error', 'Akun bisnis Anda belum diverifikasi oleh Admin.');
+        }
 
         $request->validate([
             'promo_text' => 'required|string|max:50', // Max 50 biar muat di UI
@@ -107,11 +115,11 @@ class BusinessController extends Controller
     }
 
     // =========================================================================
-    // BAGIAN 2: FITUR ADMINISTRATOR (REAL DATA DASHBOARD)
+    // BAGIAN 2: FITUR ADMINISTRATOR (CONTROL ROOM)
     // =========================================================================
 
     /**
-     * Menampilkan Dashboard Admin dengan Data Real dari Database.
+     * Menampilkan Dashboard Admin dengan Data Real & Antrian Verifikasi.
      */
     public function adminDashboard()
     {
@@ -121,16 +129,24 @@ class BusinessController extends Controller
         // 2. Viral Spots (Tempat dengan score > 80)
         $viralCount = HangoutPlace::where('viral_score', '>', 80)->count();
 
-        // 3. Most Wanted (Tempat dengan views tertinggi)
+        // 3. [BARU] Ambil daftar klaim yang statusnya masih Pending (is_verified = 0)
+        // Pastikan kolom 'is_verified' sudah ada di database
+        $pendingClaims = HangoutPlace::where('is_claimed', true)
+                                     ->where('is_verified', false)
+                                     ->with('user') // Eager load data user
+                                     ->latest()
+                                     ->get();
+
+        // 4. Most Wanted (Tempat dengan views tertinggi)
         $mostWantedPlace = HangoutPlace::orderByDesc('profile_views')->first();
         
-        // 4. Weather Simulation (Agar terlihat Real-time sesuai jam server)
+        // 5. Weather Simulation
         $hour = now()->hour;
         $weatherCondition = ($hour >= 6 && $hour < 18) ? 'Cerah Berawan' : 'Sejuk Berawan';
         $temp = rand(28, 32); 
         $rainChance = rand(10, 60);
 
-        // Format Angka Traffic (e.g. 24000 -> 24.5k)
+        // Format Angka Traffic
         $formattedTraffic = $totalTraffic > 1000 
                             ? number_format($totalTraffic / 1000, 1) . 'k' 
                             : $totalTraffic;
@@ -149,8 +165,7 @@ class BusinessController extends Controller
             ]
         ];
 
-        // 5. Chart Data (Simulasi Trend 7 Hari Terakhir)
-        // Karena kita tidak punya tabel 'daily_visits', kita generate pola acak yang masuk akal
+        // 6. Chart Data & Updates (Simulasi)
         $chartData = [
             'labels' => ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
             'data' => [
@@ -159,7 +174,6 @@ class BusinessController extends Controller
             ]
         ];
 
-        // 6. Recent Updates (Ambil user terbaru atau tempat terbaru)
         $latestUser = User::latest()->first();
         $latestPlace = HangoutPlace::latest()->first();
 
@@ -181,6 +195,38 @@ class BusinessController extends Controller
             ]
         ];
 
-        return view('business.admin_dashboard', compact('metrics', 'chartData', 'updates'));
+        return view('business.admin_dashboard', compact('metrics', 'chartData', 'updates', 'pendingClaims', 'totalTraffic'));
+    }
+
+    /**
+     * [BARU] Menyetujui klaim bisnis (Approve).
+     */
+    public function verifyClaim($id)
+    {
+        $place = HangoutPlace::findOrFail($id);
+        
+        // Ubah status jadi Verified
+        $place->update(['is_verified' => true]);
+        
+        // Opsional: Kirim notifikasi ke user (pakai fitur No. 4)
+        
+        return back()->with('success', 'Bisnis berhasil diverifikasi & diterbitkan!');
+    }
+
+    /**
+     * [BARU] Menolak klaim bisnis (Reject).
+     */
+    public function rejectClaim($id)
+    {
+        $place = HangoutPlace::findOrFail($id);
+        
+        // Reset kepemilikan
+        $place->update([
+            'user_id'     => null,
+            'is_claimed'  => false,
+            'is_verified' => false
+        ]);
+
+        return back()->with('success', 'Permintaan klaim ditolak.');
     }
 }

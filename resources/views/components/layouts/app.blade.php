@@ -1,27 +1,32 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? 'Kalcer.id' }}</title>
         
-        {{-- 1. SCRIPT THEME (WAJIB DI ATAS: Mencegah Efek Putih Sekilas) --}}
+        {{-- 1. SCRIPT DARK MODE (Logika Terpusat) --}}
         <script>
-            function applyTheme() {
-                const theme = localStorage.getItem('theme');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            // Fungsi Global: Cek LocalStorage & Terapkan Class
+            function updateTheme() {
+                const isDark = localStorage.theme === 'dark' || 
+                    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                
+                if (isDark) {
                     document.documentElement.classList.add('dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                 }
             }
-            applyTheme();
 
-            // Jalankan ulang setiap kali Livewire pindah halaman
-            document.addEventListener('livewire:navigated', applyTheme);
+            // Jalankan segera saat file dimuat (mencegah kedip putih)
+            updateTheme();
+
+            // Jalankan ulang setiap kali Livewire selesai navigasi (PENTING!)
+            document.addEventListener('livewire:navigated', updateTheme);
         </script>
 
-        {{-- Mapbox & Font Assets --}}
+        {{-- Assets --}}
         <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
         <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,30 +39,32 @@
         <style>
             [x-cloak] { display: none !important; }
             .mapboxgl-map { min-height: 100%; height: 100%; width: 100%; }
-            html { transition: background-color 0.3s ease; }
         </style>
     </head>
 
-    <body class="min-h-screen bg-white dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 flex flex-col transition-colors duration-300"
+    {{-- 2. BODY DENGAN STATE ALPINE YANG DI-SINKRONKAN --}}
+    <body class="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 flex flex-col transition-colors duration-300"
         x-data="{ 
             mobileMenuOpen: false, 
-            {{-- Inisialisasi state Alpine dari class asli di HTML --}}
+            
+            // Ambil status awal langsung dari class HTML agar sinkron
             darkMode: document.documentElement.classList.contains('dark'),
+            
             toggleTheme() {
                 this.darkMode = !this.darkMode;
+                
+                // Simpan ke LocalStorage
                 localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
-                if (this.darkMode) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
+                
+                // Panggil fungsi global di <head> untuk update UI
+                updateTheme();
             }
         }"
-        {{-- Paksa Alpine sinkron ulang saat navigasi selesai --}}
+        {{-- Event Listener: Saat pindah halaman, paksa Alpine baca ulang status class HTML --}}
         x-on:livewire:navigated.window="darkMode = document.documentElement.classList.contains('dark')"
     >
         
-        <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg border-b border-zinc-200 dark:border-white/5">
+        <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg border-b border-zinc-200 dark:border-white/5 transition-colors duration-300">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16 items-center">
                     
@@ -93,14 +100,15 @@
                         </a>
                         
                         @auth
+                            {{-- Profile Dropdown --}}
                             <div class="relative ml-4" x-data="{ open: false }">
                                 <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-2 font-bold hover:text-indigo-600 transition pl-4 border-l border-zinc-200 dark:border-zinc-700">
                                     <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-[2px]">
-                                        <div class="w-full h-full rounded-full bg-white dark:bg-zinc-900 flex items-center justify-center text-xs font-black text-zinc-700 dark:text-zinc-200">
+                                        <div class="w-full h-full rounded-full bg-white dark:bg-zinc-900 flex items-center justify-center text-xs font-black text-zinc-700 dark:text-zinc-200 uppercase">
                                             {{ substr(Auth::user()->name, 0, 1) }}
                                         </div>
                                     </div>
-                                    <span class="text-sm">{{ explode(' ', Auth::user()->name)[0] }}</span>
+                                    <span class="text-sm max-w-[100px] truncate">{{ explode(' ', Auth::user()->name)[0] }}</span>
                                     <i class="fa-solid fa-chevron-down text-[10px] opacity-50 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
                                 </button>
                                 
@@ -138,19 +146,30 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Fitur No. 4: Notifikasi --}}
+                            @livewire('layout.notification-bell')
+
                         @else
                             <a href="{{ route('login') }}" wire:navigate class="ml-4 px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold rounded-full hover:scale-105 transition duration-300 shadow-lg">
                                 Login
                             </a>
                         @endauth
     
-                        {{-- TOGGLE THEME BUTTON --}}
-                        <button @click="toggleTheme()" class="ml-2 w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 transition active:scale-90">
-                            <i class="fa-solid" :class="darkMode ? 'fa-sun text-yellow-400' : 'fa-moon text-zinc-600'"></i>
+                        {{-- TOGGLE THEME BUTTON (FIXED) --}}
+                        <button @click="toggleTheme()" class="ml-2 w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-90 shadow-sm border border-transparent dark:border-white/5">
+                            {{-- Jika Dark Mode aktif, tampilkan Matahari (untuk switch ke Light) --}}
+                            <i class="fa-solid fa-sun text-yellow-400 text-lg transition-transform duration-500" 
+                               x-show="darkMode" 
+                               style="display: none;"></i>
+                            
+                            {{-- Jika Light Mode aktif, tampilkan Bulan (untuk switch ke Dark) --}}
+                            <i class="fa-solid fa-moon text-zinc-600 text-lg transition-transform duration-500" 
+                               x-show="!darkMode"></i>
                         </button>
                     </div>
     
-                    {{-- MOBILE TOGGLE --}}
+                    {{-- MOBILE TOGGLE & MENU --}}
                     <div class="flex items-center gap-4 md:hidden">
                         <button @click="toggleTheme()" class="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                             <i class="fa-solid" :class="darkMode ? 'fa-sun text-yellow-400' : 'fa-moon text-zinc-600'"></i>
@@ -163,28 +182,54 @@
             </div>
     
             {{-- MOBILE MENU --}}
-            <div x-show="mobileMenuOpen" x-cloak x-transition class="md:hidden absolute top-16 left-0 w-full bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-700 shadow-2xl">
-                <div class="px-4 py-6 space-y-4">
-                    <a href="{{ route('explore') }}" wire:navigate class="flex items-center gap-3 text-lg font-bold p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                        <i class="fa-solid fa-compass w-6 text-zinc-400"></i> Explore
+            <div x-show="mobileMenuOpen" 
+                x-cloak
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 -translate-y-full"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                class="md:hidden fixed inset-0 z-[60] bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl">
+                
+                <div class="flex flex-col h-full p-6 pt-24 space-y-4">
+                    @php
+                        $mobileLinkClass = "flex items-center gap-4 p-4 rounded-2xl text-xl font-bold transition-all active:scale-95";
+                        $mobileActive = "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20";
+                        $mobileInactive = "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900";
+                    @endphp
+
+                    <a href="{{ route('explore') }}" wire:navigate class="{{ $mobileLinkClass }} {{ request()->routeIs('explore') ? $mobileActive : $mobileInactive }}">
+                        <i class="fa-solid fa-compass text-2xl"></i> Explore
                     </a>
-                    <a href="{{ route('maps') }}" wire:navigate class="flex items-center gap-3 text-lg font-bold p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                        <i class="fa-solid fa-map-location-dot w-6 text-zinc-400"></i> Maps
+                    <a href="{{ route('maps') }}" wire:navigate class="{{ $mobileLinkClass }} {{ request()->routeIs('maps') ? $mobileActive : $mobileInactive }}">
+                        <i class="fa-solid fa-map-location-dot text-2xl"></i> Maps
                     </a>
-                    <a href="{{ route('trending') }}" wire:navigate class="flex items-center gap-3 text-lg font-bold p-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                        <i class="fa-solid fa-fire w-6 text-zinc-400"></i> Trending
+                    <a href="{{ route('trending') }}" wire:navigate class="{{ $mobileLinkClass }} {{ request()->routeIs('trending') ? $mobileActive : $mobileInactive }}">
+                        <i class="fa-solid fa-fire text-2xl"></i> Trending
                     </a>
-                    
-                    @auth
-                        <div class="pt-4 mt-4 border-t border-zinc-100 dark:border-zinc-800">
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left p-2 font-bold text-red-500">Logout</button>
-                            </form>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" wire:navigate class="block w-full text-center py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg">Login</a>
-                    @endauth
+
+                    <div class="mt-auto pb-10 space-y-4">
+                        @auth
+                            <div class="p-4 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
+                                        {{ substr(Auth::user()->name, 0, 1) }}
+                                    </div>
+                                    <span class="font-bold truncate max-w-[120px]">{{ Auth::user()->name }}</span>
+                                </div>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="text-red-500 font-bold p-2">Logout</button>
+                                </form>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="block w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-center font-bold rounded-2xl text-lg shadow-xl">
+                                Masuk Akun
+                            </a>
+                        @endauth
+                        
+                        <button @click="mobileMenuOpen = false" class="w-full py-4 text-zinc-400 font-medium">
+                            Tutup Menu
+                        </button>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -193,8 +238,8 @@
             {{ $slot }}
         </main>
 
-        <footer class="text-center text-xs text-zinc-500 py-6 border-t border-zinc-200 dark:border-zinc-800">
-            <p>&copy; {{ date('Y') }} Kalcer.id. All rights reserved.</p>
+        <footer class="text-center text-xs text-zinc-500 py-8 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <p>&copy; {{ date('Y') }} Kalcer.id. Jakarta Selatan Pride.</p>
         </footer>
 
     </body>

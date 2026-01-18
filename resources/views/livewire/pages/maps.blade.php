@@ -45,7 +45,8 @@ class extends Component {
 }; ?>
 
 {{-- ROOT ELEMENT (HANYA BOLEH ADA SATU DIV UTAMA) --}}
-<div class="flex flex-col lg:flex-row h-[calc(100vh-64px)] bg-white dark:bg-zinc-900 overflow-hidden relative">
+{{-- GANTI SELURUH STRUKTUR HTML DENGAN INI --}}
+<div class="flex flex-col lg:flex-row h-[calc(100dvh-64px)] bg-white dark:bg-zinc-900 overflow-hidden relative">
 
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -56,39 +57,59 @@ class extends Component {
         .mapboxgl-popup-content { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
         .mapboxgl-popup-tip { border-top-color: #18181b !important; }
         
-        /* Hide mapbox logo info for cleaner look (optional) */
+        /* Hide mapbox logo info for cleaner look */
         .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-bottom-right { opacity: 0.6; transform: scale(0.8); transform-origin: bottom; }
     </style>
 
-    <div class="w-full lg:w-96 bg-white dark:bg-zinc-900 flex flex-col border-r border-zinc-200 dark:border-zinc-800 z-20 shadow-2xl h-[45vh] lg:h-full order-2 lg:order-1 transition-all duration-300 relative">
+    {{-- BAGIAN 1: PETA (Di HP: Posisi Atas, Di Laptop: Posisi Kanan) --}}
+    <div class="flex-1 relative h-[45vh] lg:h-full order-1 lg:order-2 w-full bg-zinc-100 dark:bg-zinc-800">
+        <div id="map" class="w-full h-full absolute inset-0 z-0"></div>
         
-        <div class="lg:hidden w-full flex justify-center py-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl -mt-4 shadow-[0_-5px_15px_rgba(0,0,0,0.1)] z-30">
+        {{-- Floating Button Lokasi Saya --}}
+        <div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <button onclick="map.flyTo({center: userLocation, zoom: 14})" class="w-10 h-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur rounded-xl shadow-lg flex items-center justify-center text-zinc-700 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition ring-1 ring-black/5" title="Lokasi Saya">
+                <i class="fa-solid fa-crosshairs"></i>
+            </button>
+            <div class="bg-white/90 dark:bg-zinc-900/90 backdrop-blur rounded-xl shadow-lg p-2 flex flex-col items-center gap-1 ring-1 ring-black/5">
+                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                <span class="text-[8px] font-bold uppercase text-zinc-500">Ramai</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- BAGIAN 2: SIDEBAR LIST TEMPAT (Di HP: Posisi Bawah/Drawer, Di Laptop: Posisi Kiri) --}}
+    <div class="w-full lg:w-96 bg-white dark:bg-zinc-900 flex flex-col lg:border-r border-t lg:border-t-0 border-zinc-200 dark:border-zinc-800 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] lg:shadow-2xl h-[55vh] lg:h-full order-2 lg:order-1 transition-all duration-300 relative rounded-t-[2rem] lg:rounded-none -mt-6 lg:mt-0">
+        
+        {{-- Handle Bar untuk Tampilan Mobile (Pemanis UI) --}}
+        <div class="lg:hidden w-full flex justify-center py-3 bg-white dark:bg-zinc-900 rounded-t-[2rem]">
             <div class="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full"></div>
         </div>
 
-        <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 z-10">
-            <div class="relative group">
+        {{-- Search & Filter Header --}}
+        <div class="px-4 pb-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 z-10 lg:pt-4">
+            <div class="relative group mb-3">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition"></i>
                 <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari cafe, taman..." 
-                    class="w-full pl-10 pr-10 py-2.5 bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-zinc-900 dark:text-white placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 text-sm font-medium transition">
+                    class="w-full pl-10 pr-10 py-3 bg-zinc-100 dark:bg-zinc-800 border-none rounded-xl text-zinc-900 dark:text-white placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 text-sm font-medium transition shadow-inner">
                 <div wire:loading wire:target="search" class="absolute right-3 top-1/2 -translate-y-1/2">
                     <i class="fa-solid fa-circle-notch fa-spin text-indigo-500"></i>
                 </div>
             </div>
             
-            <div class="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                 @foreach(['Semua', 'Coffee Shop', 'Public Park', 'Culinary', 'Creative Space'] as $cat)
                     <button wire:click="setCategory('{{ $cat }}')" 
-                        class="px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition border {{ $activeCategory === $cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700' }}">
+                        class="px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition border shrink-0 {{ $activeCategory === $cat ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700' }}">
                         {{ $cat }}
                     </button>
                 @endforeach
             </div>
         </div>
 
+        {{-- List Tempat (Scrollable) --}}
         <div class="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar bg-zinc-50 dark:bg-zinc-900/50 pb-20 lg:pb-2">
             @if(count($places) > 0)
-                <div class="flex justify-between items-center px-2 mt-2">
+                <div class="flex justify-between items-center px-2 mt-2 lg:mt-0">
                     <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Hasil Pencarian</h3>
                     <span class="text-[10px] bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full">{{ count($places) }} Tempat</span>
                 </div>
@@ -129,23 +150,9 @@ class extends Component {
             @endif
         </div>
     </div>
-
-    <div class="flex-1 relative order-1 lg:order-2 h-[55vh] lg:h-full bg-zinc-100 dark:bg-zinc-800">
-        <div id="map" class="w-full h-full absolute inset-0 z-0"></div>
-        
-        <div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
-            <button onclick="map.flyTo({center: userLocation, zoom: 14})" class="w-10 h-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur rounded-xl shadow-lg flex items-center justify-center text-zinc-700 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition ring-1 ring-black/5" title="Lokasi Saya">
-                <i class="fa-solid fa-crosshairs"></i>
-            </button>
-            <div class="bg-white/90 dark:bg-zinc-900/90 backdrop-blur rounded-xl shadow-lg p-2 flex flex-col items-center gap-1 ring-1 ring-black/5">
-                <div class="w-2 h-2 rounded-full bg-red-500"></div>
-                <span class="text-[8px] font-bold uppercase text-zinc-500">Ramai</span>
-            </div>
-        </div>
-    </div>
     
     <div id="map-data" data-places="{{ json_encode($places) }}" class="hidden"></div>
-</div> {{-- PENUTUP DIV UTAMA (JANGAN ADA HTML LAIN SETELAH INI) --}}
+</div>
 
 {{-- SCRIPT DIJALANKAN DI LUAR DOM TAPI TETAP DALAM KONTEKS LIVEWIRE --}}
 @script

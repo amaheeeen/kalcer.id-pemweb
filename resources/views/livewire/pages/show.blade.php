@@ -6,6 +6,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use App\Models\HangoutPlace;
 use App\Models\Review;
+use App\Models\Checkin; // [NEW] Import Model Checkin
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,9 +24,13 @@ class extends Component {
     // Bookmark State
     public $isSaved = false;
 
+    // [NEW] Check-in State
+    public $hasCheckedIn = false;
+
     public function getIsOpenProperty()
     {
         $now = Carbon::now()->hour;
+        // Asumsi sederhana: Buka jam 10 - 22
         return $now >= 10 && $now <= 22;
     }
 
@@ -33,9 +38,50 @@ class extends Component {
     {
         $this->place = $place;
 
+        // [NEW] Increment View Counter
+        $this->place->increment('profile_views');
+
         if (Auth::check()) {
+            // Cek Bookmark
             $this->isSaved = Auth::user()->bookmarks()->where('hangout_place_id', $place->id)->exists();
+
+            // [NEW] Cek Status Check-in (Valid 3 Jam Terakhir)
+            $this->hasCheckedIn = Checkin::where('user_id', Auth::id())
+                ->where('hangout_place_id', $place->id)
+                ->where('created_at', '>=', now()->subHours(3))
+                ->exists();
         }
+    }
+
+    // [NEW] Logic Check-in Real-time
+    public function checkIn()
+    {
+        if (!Auth::check()) {
+            return $this->redirect(route('login'), navigate: true);
+        }
+
+        if ($this->hasCheckedIn) {
+            // Fitur Check-out (Opsional: Hapus data checkin terakhir)
+            Checkin::where('user_id', Auth::id())
+                ->where('hangout_place_id', $this->place->id)
+                ->latest()
+                ->first()
+                ?->delete();
+                
+            $this->hasCheckedIn = false;
+        } else {
+            // Create Check-in Baru
+            Checkin::create([
+                'user_id' => Auth::id(),
+                'hangout_place_id' => $this->place->id
+            ]);
+            
+            $this->hasCheckedIn = true;
+            session()->flash('checkin_status', 'Berhasil Check-in! Terima kasih infonya 🙌');
+        }
+        
+        // Refresh data model untuk update crowd_status di UI
+        $this->place->refresh();
     }
 
     public function toggleBookmark()
@@ -64,42 +110,48 @@ class extends Component {
             'content' => $this->content
         ]);
 
-        $this->place->increment('viral_score', 2);
+        // Naikkan skor viral
+        $this->place->increment('viral_score', 5); // Naik 5 poin biar cepat viral untuk testing
+        
+        // [BARU] LOGIKA NOTIFIKASI
+        // Kirim notifikasi ke user lain jika skor viral tembus > 80
+        if ($this->place->viral_score >= 80) {
+            // Ambil 5 user acak selain diri sendiri (biar ga spam database saat testing)
+            $users = User::where('id', '!=', Auth::id())->inRandomOrder()->take(5)->get();
+            
+            if ($users->count() > 0) {
+                Notification::send($users, new ViralAlert($this->place));
+            }
+        }
+
         $this->reset(['rating', 'content']);
-        session()->flash('message', 'Review berhasil dikirim! Viral score naik 🔥');
+        session()->flash('message', 'Review dikirim! Viral score naik 🔥');
     }
 
-    // --- FITUR KLAIM BISNIS (BARU) ---
+    // --- FITUR KLAIM BISNIS ---
     public function claimBusiness()
     {
-        // 1. Cek Login
         if (!Auth::check()) return $this->redirect(route('login'), navigate: true);
 
-        // 2. Validasi: Tempat ini belum ada yang punya
         if ($this->place->user_id) {
             session()->flash('claim_error', 'Tempat ini sudah diklaim oleh pemilik lain.');
             return;
         }
 
-        // 3. Validasi: User ini belum punya bisnis lain (Aturan MVP: 1 User = 1 Bisnis)
         if (Auth::user()->business) {
             session()->flash('claim_error', 'Anda sudah mengelola bisnis lain. Satu akun hanya boleh mengklaim satu tempat.');
             return;
         }
 
-        // 4. Proses Klaim
         $this->place->update(['user_id' => Auth::id()]);
-        
-        // Update Role User jadi Owner
         Auth::user()->update(['role' => 'business_owner']);
-
-        // 5. Redirect ke Dashboard
         return $this->redirect(route('business.index'), navigate: true);
     }
 }; ?>
 
 <div class="min-h-screen bg-white dark:bg-zinc-900 pb-20">
     
+    {{-- HERO SECTION --}}
     <div class="relative h-[50vh] md:h-[60vh] w-full overflow-hidden group">
         <img src="{{ $place->image_url }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105 filter brightness-75">
         <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent"></div>
@@ -131,11 +183,14 @@ class extends Component {
         </div>
     </div>
 
+    {{-- MAIN CONTENT --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-30">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
+            {{-- KOLOM KIRI (Konten Utama) --}}
             <div class="lg:col-span-2 space-y-8">
                 
+                {{-- STATS BAR --}}
                 <div class="bg-white dark:bg-zinc-800 rounded-3xl p-6 shadow-xl border border-zinc-100 dark:border-zinc-700 flex justify-around items-center text-center">
                     <div>
                         <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Status</p>
@@ -148,7 +203,7 @@ class extends Component {
                     <div class="w-px h-10 bg-zinc-200 dark:bg-zinc-700"></div>
                     <div>
                         <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Crowd</p>
-                        <span class="text-zinc-900 dark:text-white font-bold text-sm">{{ ucfirst($place->crowd_level) }}</span>
+                        <span class="text-zinc-900 dark:text-white font-bold text-sm">{{ ucfirst($place->crowd_status) }}</span>
                     </div>
                     <div class="w-px h-10 bg-zinc-200 dark:bg-zinc-700"></div>
                     <div>
@@ -156,6 +211,37 @@ class extends Component {
                         <span class="text-indigo-500 font-bold text-sm">{{ number_format($place->profile_views) }}</span>
                     </div>
                 </div>
+
+                {{-- [NEW] LIVE CROWD CHECK-IN SECTION --}}
+                <div class="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-5 border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="relative flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $place->crowd_status === 'Sepi' ? 'bg-green-400' : ($place->crowd_status === 'Ramai' ? 'bg-orange-400' : 'bg-red-400') }}"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 {{ $place->crowd_status === 'Sepi' ? 'bg-green-500' : ($place->crowd_status === 'Ramai' ? 'bg-orange-500' : 'bg-red-500') }}"></span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-zinc-900 dark:text-white text-sm">Live Crowd Monitor</h4>
+                            <p class="text-xs text-zinc-500">
+                                {{ $place->checkins()->where('created_at', '>=', now()->subHours(3))->count() }} orang sedang disini
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <button wire:click="checkIn" class="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-sm transition-all transform active:scale-95 shadow-md flex items-center justify-center gap-2 {{ $hasCheckedIn ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:opacity-90' }}">
+                        @if($hasCheckedIn)
+                            <i class="fa-solid fa-person-walking-arrow-right"></i> Check-out
+                        @else
+                            <i class="fa-solid fa-location-dot"></i> Saya Disini!
+                        @endif
+                    </button>
+                </div>
+
+                @if (session()->has('checkin_status'))
+                    <div class="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-bold rounded-xl text-center animate-pulse">
+                        {{ session('checkin_status') }}
+                    </div>
+                @endif
+                {{-- END LIVE CROWD SECTION --}}
 
                 @if($place->promo_text && \Carbon\Carbon::parse($place->promo_expires_at)->isFuture())
                     <div class="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
@@ -268,34 +354,30 @@ class extends Component {
                 </div>
             </div>
 
+            {{-- KOLOM KANAN (Sidebar) --}}
             <div class="lg:col-span-1">
                 <div class="sticky top-24 space-y-4">
                     
                     <div class="rounded-3xl overflow-hidden h-48 relative border border-zinc-200 dark:border-zinc-700 group">
-                    {{-- 1. Gunakan Google Maps Embed (Gratis & Selalu Muncul) --}}
-                    <iframe 
-                        width="100%" 
-                        height="100%" 
-                        frameborder="0" 
-                        scrolling="no" 
-                        marginheight="0" 
-                        marginwidth="0" 
-                        {{-- Filter CSS ini membuat peta jadi mode gelap (Dark Mode) agar estetik --}}
-                        style="filter: grayscale(100%) invert(92%) contrast(83%); border:0;"
-                        src="https://maps.google.com/maps?q={{ $place->latitude }},{{ $place->longitude }}&hl=id&z=15&output=embed">
-                    </iframe>
+                        <iframe 
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0" 
+                            scrolling="no" 
+                            marginheight="0" 
+                            marginwidth="0" 
+                            style="filter: grayscale(100%) invert(92%) contrast(83%); border:0;"
+                            src="https://maps.google.com/maps?q={{ $place->latitude }},{{ $place->longitude }}&hl=id&z=15&output=embed">
+                        </iframe>
 
-                    {{-- 2. Overlay Gelap & Tombol (Diperbaiki Link-nya) --}}
-                    <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition duration-300 pointer-events-none">
-                        {{-- pointer-events-auto pada tombol agar bisa diklik --}}
-                        <a href="https://www.google.com/maps/search/?api=1&query={{ $place->latitude }},{{ $place->longitude }}" 
-                        target="_blank" 
-                        class="pointer-events-auto px-5 py-2.5 bg-white text-zinc-900 font-bold text-xs rounded-full shadow-xl hover:scale-105 hover:bg-zinc-100 transition flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 opacity-90 group-hover:opacity-100">
-                            <i class="fa-solid fa-map-location-dot text-indigo-600"></i> Buka di Google Maps
-                        </a>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition duration-300 pointer-events-none">
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ $place->latitude }},{{ $place->longitude }}" 
+                            target="_blank" 
+                            class="pointer-events-auto px-5 py-2.5 bg-white text-zinc-900 font-bold text-xs rounded-full shadow-xl hover:scale-105 hover:bg-zinc-100 transition flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 opacity-90 group-hover:opacity-100">
+                                <i class="fa-solid fa-map-location-dot text-indigo-600"></i> Buka di Google Maps
+                            </a>
+                        </div>
                     </div>
-
-                </div>
                     
                     <a href="https://www.google.com/maps/dir/?api=1&destination={{ $place->latitude }},{{ $place->longitude }}" target="_blank" class="block w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-center rounded-2xl shadow-lg shadow-indigo-500/20 transition transform hover:-translate-y-1">
                         <i class="fa-solid fa-location-arrow mr-2"></i> Petunjuk Arah
