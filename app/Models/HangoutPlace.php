@@ -16,12 +16,10 @@ class HangoutPlace extends Model
         'facilities' => 'array',
         'promo_expires_at' => 'datetime',
         'is_claimed' => 'boolean',
-        'is_verified' => 'boolean', // [PENTING] Tambahkan ini
+        'is_verified' => 'boolean',
     ];
 
     // --- RELATIONSHIPS (Wajib Lengkap) ---
-    
-    // [FIX 500 ERROR] Relasi ini WAJIB ADA karena dipanggil di Admin Dashboard
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -32,7 +30,6 @@ class HangoutPlace extends Model
         return $this->hasMany(Review::class);
     }
 
-    // Relasi Checkin (Fitur No. 2)
     public function checkins()
     {
         return $this->hasMany(Checkin::class);
@@ -47,13 +44,18 @@ class HangoutPlace extends Model
 
     public function getImageUrlAttribute()
     {
-        if (empty($this->image)) {
+        // 1. Cek apakah kolom image_url kosong?
+        if (empty($this->image_url)) {
             return 'https://placehold.co/600x400?text=No+Image';
         }
-        if (Str::startsWith($this->image, ['http://', 'https://'])) {
-            return $this->image;
+
+        // 2. Cek apakah ini link eksternal (Unsplash, dll)?
+        if (Str::startsWith($this->image_url, ['http://', 'https://'])) {
+            return $this->image_url;
         }
-        return asset('storage/' . $this->image);
+
+        // 3. Jika bukan link, berarti file upload lokal (storage)
+        return asset('storage/' . $this->image_url);
     }
 
     public function getAvgRatingAttribute()
