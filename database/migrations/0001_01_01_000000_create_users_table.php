@@ -28,8 +28,6 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
-        
-        // ... (kode di bawahnya biarkan default)
     }
 
     /**

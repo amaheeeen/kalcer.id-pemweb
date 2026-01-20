@@ -26,7 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',   
         'bio',      
         'password',
-        'role', // PENTING: Wajib ada agar kolom role bisa diisi
+        'role',
         'phone_number',
     ];
 

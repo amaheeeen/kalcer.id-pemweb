@@ -199,7 +199,7 @@ class BusinessController extends Controller
     }
 
     /**
-     * [BARU] Menyetujui klaim bisnis (Approve).
+     * Menyetujui klaim bisnis (Approve).
      */
     public function verifyClaim($id)
     {
@@ -214,7 +214,7 @@ class BusinessController extends Controller
     }
 
     /**
-     * [BARU] Menolak klaim bisnis (Reject).
+     * Menolak klaim bisnis (Reject).
      */
     public function rejectClaim($id)
     {

@@ -10,23 +10,23 @@ return new class extends Migration
     {
         Schema::create('hangout_places', function (Blueprint $table) {
             $table->id(); // ID_Tempat
-            // Relasi ke Pelaku Usaha (bisa null jika diinput admin) [cite: 309]
+            // Relasi ke Pelaku Usaha (bisa null jika diinput admin)
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             
             $table->string('name'); // Nama_Tempat
             $table->text('address'); // Alamat_Lengkap
             
-            // Koordinat Peta [cite: 307]
+            // Koordinat Peta
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
             
             $table->string('category'); // Kafe, Restoran, dll
-            $table->json('facilities')->nullable(); // Disimpan sebagai JSON ["WiFi", "AC"] [cite: 309]
+            $table->json('facilities')->nullable(); // Disimpan sebagai JSON ["WiFi", "AC"]
             $table->string('operational_hours')->nullable();
             $table->text('description')->nullable();
             $table->string('image_url')->nullable(); // Foto Utama
             
-            // Analitik & Viralitas [cite: 310]
+            // Analitik & Viralitas
             $table->enum('crowd_level', ['sepi', 'sedang', 'ramai', 'penuh'])->default('sepi');
             $table->integer('viral_score')->default(0); 
             $table->boolean('is_verified')->default(false); // Validasi Admin

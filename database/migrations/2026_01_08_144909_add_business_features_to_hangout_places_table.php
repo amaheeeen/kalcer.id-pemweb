@@ -9,8 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('hangout_places', function (Blueprint $table) {
-            // Kita pakai 'user_id' yang sudah ada sebagai Owner.
-            // Jadi tidak perlu bikin kolom 'owner_id' baru, cukup manfaatkan yang ada.
             
             // Fitur Promo Real-time
             if (!Schema::hasColumn('hangout_places', 'promo_text')) {

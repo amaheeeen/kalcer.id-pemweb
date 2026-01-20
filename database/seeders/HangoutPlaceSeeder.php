@@ -67,7 +67,7 @@ class HangoutPlaceSeeder extends Seeder
                 }
             }
 
-            // [BARU] Logika Penentuan Kepribadian
+            //  Logika Penentuan Kepribadian
             $personality = 'ambivert';
             if (in_array($spot['category'], ['Coffee Shop', 'Public Park'])) {
                 // Tempat santai biasanya cocok untuk Introvert/Ambivert
@@ -91,9 +91,8 @@ class HangoutPlaceSeeder extends Seeder
                 'viral_score' => rand(50, 99), // Tambah viral score acak
                 'profile_views' => rand(100, 5000),
                 
-                // --- KOLOM BARU FITUR NO.3 ---
                 'price_range' => rand(1, 3), // 1=$, 2=$$, 3=$$$
-                'personality_type' => $personality,
+                'personality_type' => $personality, 
                 // -----------------------------
 
                 'created_at' => Carbon::now(),

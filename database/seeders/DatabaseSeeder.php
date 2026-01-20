@@ -18,9 +18,9 @@ class DatabaseSeeder extends Seeder
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
-                'password' => 'password', // password default biasanya di-hash otomatis oleh mutator user atau perlu bcrypt('password') jika tidak ada mutator
-                'email_verified_at' => now(),
-                'role' => 'user', // Pastikan role diisi (sesuai edit tabel users tadi)
+                'password' => 'password', // Password akan di-hash otomatis oleh model User
+                'email_verified_at' => now(), 
+                'role' => 'user', // 'user' atau 'admin'
             ]
         );
 

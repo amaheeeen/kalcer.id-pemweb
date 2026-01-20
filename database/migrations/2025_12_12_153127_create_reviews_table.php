@@ -8,9 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Pastikan kita menggunakan Schema::create (bukan table)
-        // karena ini adalah file utama pembentuk tabel
-        Schema::create('reviews', function (Blueprint $table) {
+            Schema::create('reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('hangout_place_id')->constrained()->cascadeOnDelete();
