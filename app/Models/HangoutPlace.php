@@ -12,29 +12,39 @@ class HangoutPlace extends Model
 
     protected $guarded = ['id'];
 
-    // 1. Agar kolom 'facilities' (JSON) bisa dibaca sebagai Array di Blade
     protected $casts = [
         'facilities' => 'array',
         'promo_expires_at' => 'datetime',
+        'is_claimed' => 'boolean',
+        'is_verified' => 'boolean', // [PENTING] Tambahkan ini
     ];
 
-    // --- RELATIONSHIPS (Wajib ada biar $place->reviews tidak error) ---
+    // --- RELATIONSHIPS (Wajib Lengkap) ---
     
-    // Relasi ke tabel reviews
+    // [FIX 500 ERROR] Relasi ini WAJIB ADA karena dipanggil di Admin Dashboard
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function reviews()
     {
         return $this->hasMany(Review::class);
     }
 
-    // Relasi ke tabel bookmarks (User yang menyimpan tempat ini)
+    // Relasi Checkin (Fitur No. 2)
+    public function checkins()
+    {
+        return $this->hasMany(Checkin::class);
+    }
+
     public function bookmarkedBy()
     {
         return $this->belongsToMany(User::class, 'bookmarks', 'hangout_place_id', 'user_id');
     }
 
-    // --- ACCESSORS (Logika Pintar) ---
+    // --- ACCESSORS ---
 
-    // 1. Logika Foto (Yang sudah kita buat)
     public function getImageUrlAttribute()
     {
         if (empty($this->image)) {
@@ -46,11 +56,21 @@ class HangoutPlace extends Model
         return asset('storage/' . $this->image);
     }
 
-    // 2. Logika Rating Rata-rata ($place->avg_rating)
     public function getAvgRatingAttribute()
     {
-        // Hitung rata-rata dari tabel reviews, bulatkan 1 desimal
-        // Jika belum ada review, kembalikan 0
         return round($this->reviews()->avg('rating'), 1) ?? 0;
+    }
+
+    // [FIX] Logika Crowd Status (Fitur No. 2)
+    public function getCrowdStatusAttribute()
+    {
+        $activeVisitors = $this->checkins()
+            ->where('created_at', '>=', now()->subHours(3))
+            ->count();
+
+        if ($activeVisitors > 20) return 'Penuh';
+        if ($activeVisitors > 10) return 'Ramai';
+        if ($activeVisitors > 5)  return 'Sedang';
+        return 'Sepi';
     }
 }

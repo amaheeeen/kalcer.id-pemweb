@@ -50,50 +50,106 @@ class extends Component {
 
 <div class="min-h-screen bg-white dark:bg-zinc-950 transition-colors duration-700 overflow-x-hidden">
     
-    <section class="relative h-[100dvh] flex items-center justify-center overflow-hidden">
+    <section 
+        class="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-center items-center bg-zinc-50 dark:bg-zinc-950"
+        x-data="{
+            ripples: [],
+            addRipple(e) {
+                if (Math.random() > 0.4) return; 
+                const x = e.clientX;
+                const y = e.clientY;
+                const id = Date.now();
+                this.ripples.push({ id, x, y });
+                setTimeout(() => {
+                    this.ripples = this.ripples.filter(r => r.id !== id);
+                }, 1000);
+            }
+        }"
+        @mousemove="addRipple"
+        @touchmove="addRipple"
+    >
         
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-            {{-- Lingkaran 1 --}}
-            <div class="absolute w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full border-2 border-indigo-500/30 dark:border-indigo-400/20 animate-shockwave"></div>
-            {{-- Lingkaran 2 --}}
-            <div class="absolute w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full border-2 border-purple-500/20 dark:border-purple-400/10 animate-shockwave animate-delay-1000"></div>
-            {{-- Lingkaran 3 --}}
-            <div class="absolute w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full border-2 border-blue-500/10 dark:border-blue-400/5 animate-shockwave animate-delay-2000"></div>
+        {{-- LAYER 1: BACKGROUND MARQUEE --}}
+        <div class="absolute inset-0 flex flex-col justify-center opacity-[0.03] dark:opacity-[0.05] pointer-events-none select-none overflow-hidden -rotate-3 scale-110">
+            @php
+                $marqueeText = "KALCER.ID • PANTAU SPOT VIRAL • JAKSEL PRIDE • HIDDEN GEMS • SCBD • SENOPATI • BLOK M • ";
+            @endphp
+            
+            @for($i=0; $i<5; $i++)
+                <div class="flex whitespace-nowrap animate-marquee" style="animation-duration: {{ 25 + ($i*5) }}s; animation-direction: {{ $i % 2 == 0 ? 'normal' : 'reverse' }}">
+                    <span class="text-[12vh] font-black font-syne text-zinc-900 dark:text-white uppercase leading-none">
+                        {{ str_repeat($marqueeText, 3) }}
+                    </span>
+                </div>
+            @endfor
         </div>
 
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[800px] md:h-[800px] bg-indigo-50 dark:bg-indigo-900/10 blur-[80px] md:blur-[120px] rounded-full animate-blob pointer-events-none"></div>
-        
-        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto space-y-6 md:space-y-8">
-            <div class="flex justify-center">
-                <span class="inline-flex items-center gap-2 py-1.5 px-3 md:px-4 rounded-full bg-zinc-100 dark:bg-white/5 backdrop-blur-lg border border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase shadow-sm">
-                    <span class="w-1.5 h-1.5 md:w-2 md:h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                    Live Jakarta Selatan Guide
+        {{-- LAYER 2: INTERACTIVE RIPPLE --}}
+        <div class="absolute inset-0 pointer-events-none overflow-hidden z-10">
+            <template x-for="ripple in ripples" :key="ripple.id">
+                <div 
+                    class="absolute rounded-full border border-indigo-500/30 dark:border-white/20 bg-indigo-500/5 dark:bg-white/5 backdrop-blur-[2px] animate-ripple"
+                    :style="`left: ${ripple.x}px; top: ${ripple.y}px; width: 100px; height: 100px; margin-left: -50px; margin-top: -50px;`"
+                ></div>
+            </template>
+        </div>
+
+        {{-- LAYER 3: FOREGROUND HERO --}}
+        <div class="relative z-20 text-center px-4 w-full max-w-7xl mx-auto mt-[-5vh]">
+            
+            {{-- Top Badge --}}
+            <div class="mb-6 flex justify-center">
+                <div class="relative group cursor-pointer">
+                    <div class="absolute inset-0 bg-indigo-500 blur-lg opacity-50 group-hover:opacity-100 transition duration-500"></div>
+                    <span class="relative px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-black tracking-[0.3em] uppercase border-2 border-transparent dark:border-zinc-200 skew-x-[-10deg] inline-block hover:skew-x-0 transition-transform duration-300 rounded-lg">
+                        The Ultimate Guide
+                    </span>
+                </div>
+            </div>
+
+            {{-- Main Typography (CENTERED FIX) --}}
+            {{-- Menggunakan flex-col items-center untuk memaksa tengah sempurna --}}
+            <h1 class="flex flex-col items-center justify-center font-black font-syne leading-[0.85] tracking-tighter select-none w-full">
+                
+                {{-- Baris 1: Outline Text --}}
+                <span class="block text-[15vw] md:text-[160px] text-center text-transparent [-webkit-text-stroke:2px_#18181b] dark:[-webkit-text-stroke:2px_#ffffff] hover:text-zinc-900 dark:hover:text-white transition-colors duration-500 cursor-default w-full">
+                    TEMUKAN
                 </span>
-            </div>
-
-            {{-- RESPONSIVE TEXT FIX --}}
-            <h1 class="text-4xl min-[400px]:text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-zinc-900 dark:text-white tracking-tighter leading-[0.9] md:leading-[0.85] font-syne">
-                TEMUKAN <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500">VIBES.</span>
+                
+                {{-- Baris 2: Solid Gradient Text + Ikon --}}
+                <div class="flex items-center justify-center gap-2 md:gap-6 flex-wrap mt-[-2vw] md:mt-[-40px] w-full">
+                    <span class="text-[15vw] md:text-[160px] text-center text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 drop-shadow-2xl">
+                        VIBES
+                    </span>
+                    <i class="fa-solid fa-star-of-life text-4xl md:text-7xl text-zinc-900 dark:text-white animate-spin-slow opacity-80"></i>
+                </div>
             </h1>
-            
-            <p class="text-base min-[400px]:text-lg md:text-xl text-zinc-500 dark:text-zinc-400 max-w-xs min-[400px]:max-w-md md:max-w-2xl mx-auto leading-relaxed font-medium">
-                Kurasi tempat nongkrong paling valid di Jakarta Selatan. <br class="hidden md:block"> Dari hidden gem Senopati sampai rooftop SCBD.
+
+            <p class="max-w-xl mx-auto text-lg md:text-xl font-bold text-zinc-500 dark:text-zinc-400 mt-8 mb-12 leading-relaxed">
+                Platform kurasi tempat nongkrong paling di Jakarta Selatan. 
+                <br class="hidden md:block"> Jangan sampai FOMO, cek spot viral sekarang.
             </p>
-            
-            <div class="pt-6 md:pt-8 flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center w-full px-4 sm:px-0">
-                <a href="{{ route('maps') }}" wire:navigate class="w-full sm:w-auto group px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-base md:text-lg transition-all hover:scale-105 shadow-xl hover:shadow-2xl">
-                    JELAJAHI PETA
+
+            {{-- ROUNDED BUTTONS FIX --}}
+            <div class="flex flex-col sm:flex-row gap-5 justify-center items-center">
+                
+                <a href="{{ route('explore') }}" wire:navigate class="relative px-10 py-5 bg-zinc-900 dark:bg-white text-white dark:text-black font-black text-lg uppercase tracking-wider hover:-translate-y-2 hover:shadow-[0px_10px_20px_rgba(79,70,229,0.4)] transition-all duration-300 border-2 border-transparent rounded-full">
+                    Gas Explore 🚀
                 </a>
-                <a href="{{ route('trending') }}" wire:navigate class="w-full sm:w-auto group px-8 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-2xl font-black text-base md:text-lg transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                    TRENDING 🔥
+
+                <a href="{{ route('maps') }}" wire:navigate class="relative px-10 py-5 bg-transparent text-zinc-900 dark:text-white font-black text-lg uppercase tracking-wider border-2 border-zinc-900 dark:border-white hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 rounded-full">
+                    Buka Peta 🗺️
                 </a>
+
             </div>
         </div>
 
-        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-zinc-300 dark:text-zinc-700 pointer-events-none">
-            <i class="fa-solid fa-chevron-down text-lg md:text-xl"></i>
+        {{-- Scroll Indicator --}}
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-400 dark:text-zinc-600 animate-bounce">
+            <span class="text-[10px] font-bold uppercase tracking-widest rotate-90 origin-center mb-4">Scroll</span>
+            <div class="w-[1px] h-12 bg-zinc-400 dark:bg-zinc-600"></div>
         </div>
+
     </section>
 
     <section class="py-20 md:py-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -147,21 +203,32 @@ class extends Component {
         </div>
     </section>
 
-    <section class="relative py-24 md:py-40 px-4 bg-zinc-900 dark:bg-white text-center rounded-[2rem] md:rounded-[3rem] mx-4 mb-8 overflow-hidden">
+    <section class="relative py-24 md:py-40 px-4 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-zinc-900 dark:bg-white text-center rounded-[2rem] md:rounded-[3rem] mx-4 mb-8 overflow-hidden group">
+        
+        {{-- Background Noise --}}
         <div class="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
         
+        {{-- COLOR FADE / GLOW EFFECT (BARU) --}}
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] md:w-[500px] md:h-[500px] bg-indigo-600/30 dark:bg-indigo-400/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none animate-pulse"></div>
+
         <div class="relative z-10 max-w-4xl mx-auto space-y-6 md:space-y-10">
             <h2 class="text-4xl md:text-7xl font-black tracking-tighter text-white dark:text-zinc-900 font-syne leading-tight">
-                GABUNG <span class="italic font-normal">CIRCLE</span> <br> 
+                GABUNG <span class="italic font-normal text-indigo-400 dark:text-indigo-600">CIRCLE</span> <br> 
                 PALING VALID.
             </h2>
             
-            <p class="text-zinc-400 dark:text-zinc-500 text-base md:text-xl max-w-xl mx-auto leading-relaxed">
+            <p class="text-zinc-400 dark:text-zinc-500 text-base md:text-xl max-w-xl mx-auto leading-relaxed font-medium">
                 Dapatkan akses ke Hidden Gems, review jujur, dan komunitas paling valid se-Jakarta Selatan.
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <a href="{{ route('register') }}" class="w-full sm:w-auto px-10 py-4 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-2xl font-black text-lg hover:scale-105 transition shadow-2xl">
+                {{-- Button Rounded & Transparent Hover --}}
+                <a href="{{ route('register') }}" wire:navigate class="w-full sm:w-auto px-10 py-4 rounded-full font-black text-lg transition-all duration-300 shadow-2xl border-2 
+                    bg-white text-zinc-900 border-transparent 
+                    hover:bg-transparent hover:text-white hover:border-white
+                    
+                    dark:bg-zinc-900 dark:text-white dark:border-transparent
+                    dark:hover:bg-transparent dark:hover:text-zinc-900 dark:hover:border-zinc-900">
                     JOIN SEKARANG 🚀
                 </a>
             </div>

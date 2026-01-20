@@ -1,50 +1,55 @@
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
 
-@source '../views';
+@source "../views";
+@source "../js";
+
+/* MAGIC FIX: Paksa Dark Mode menggunakan Class Strategy */
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
-    /* Font Gen Z */
+    /* Font Setup */
     --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
     --font-syne: "Syne", sans-serif;
 
-    /* Keyframes Shockwave & Blob */
-    @keyframes shockwave {
+    /* --- ANIMASI BARU --- */
+
+    /* 1. Marquee (Teks Berjalan) */
+    @keyframes marquee {
         0% {
-            transform: scale(0.5);
-            opacity: 1;
+            transform: translateX(0%);
         }
         100% {
-            transform: scale(2.5);
-            opacity: 0;
+            transform: translateX(-100%);
         }
     }
 
-    @keyframes blob {
-        0%,
-        100% {
-            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    /* 2. Ripple/Water Drop (Gelombang Air) */
+    @keyframes ripple {
+        0% {
+            transform: scale(0);
+            opacity: 0.8;
+            border-width: 0px;
         }
         50% {
-            border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(4); /* Membesar */
+            opacity: 0;
+            border-width: 2px;
         }
     }
 
-    /* Mendaftarkan Animasi ke Tailwind */
-    --animate-shockwave: shockwave 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    --animate-blob: blob 10s infinite alternate;
-}
-
-/* Custom Utility untuk Delay (Cara v4) */
-@utility animate-delay-1000 {
-    animation-delay: 1s;
-}
-@utility animate-delay-2000 {
-    animation-delay: 2s;
+    /* Mendaftarkan Animasi */
+    --animate-marquee: marquee 30s linear infinite;
+    --animate-ripple: ripple 1s cubic-bezier(0, 0.2, 0.8, 1) forwards;
 }
 
 @layer base {
     html {
-        transition: background-color 0.5s ease;
+        transition:
+            background-color 0.3s ease,
+            color 0.3s ease;
     }
 }

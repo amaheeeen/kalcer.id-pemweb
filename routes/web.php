@@ -28,7 +28,7 @@ Route::post('/logout', function () {
 // --- 3. SMART DASHBOARD REDIRECT ---
 Route::get('/dashboard', function () {
     $user = Auth::user();
-    if ($user->role === 'admin') return redirect()->route('business.dashboard');
+    if ($user->role === 'admin') return redirect()->route('business.dashboard'); 
     if ($user->role === 'business_owner') return redirect()->route('business.index');
     return redirect()->route('profile.edit');
 })->middleware(['auth'])->name('dashboard');
@@ -42,9 +42,17 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // --- 5. ADMINISTRATOR ROUTES ---
-// Pastikan middleware 'is_admin' sudah dibuat. Jika belum, ganti ke 'auth' saja sementara.
 Route::middleware(['auth'])->group(function () { 
-    Route::get('/admin/dashboard', [BusinessController::class, 'adminDashboard'])->name('business.dashboard');
+    // Route Dashboard
+    Route::get('/admin/dashboard', [BusinessController::class, 'adminDashboard'])
+        ->name('business.dashboard');
+
+    // [FIX] Route untuk Tombol Approve & Reject (WAJIB ADA)
+    Route::post('/admin/approve/{id}', [BusinessController::class, 'verifyClaim'])
+        ->name('admin.approve');
+        
+    Route::post('/admin/reject/{id}', [BusinessController::class, 'rejectClaim'])
+        ->name('admin.reject');
 });
 
 // --- 6. SETTINGS (User Profile) ---
