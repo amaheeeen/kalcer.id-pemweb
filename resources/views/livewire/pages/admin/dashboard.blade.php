@@ -152,7 +152,7 @@ class extends Component {
                         @foreach($viral_places as $index => $vp)
                             <div class="flex items-center gap-3">
                                 <div class="font-black text-zinc-500 text-lg w-4">{{ $index + 1 }}</div>
-                                <img src="{{ $vp->image_url }}" class="w-10 h-10 rounded-lg object-cover bg-zinc-700">
+                                <img src="{{ $vp->image }}" class="w-10 h-10 rounded-lg object-cover bg-zinc-700">
                                 <div class="flex-1 min-w-0">
                                     <h4 class="font-bold text-sm truncate">{{ $vp->name }}</h4>
                                     <p class="text-xs text-zinc-400">{{ number_format($vp->profile_views) }} Views</p>
@@ -196,7 +196,7 @@ class extends Component {
                             @foreach($pending_places as $pending)
                                 <div class="bg-zinc-900 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-zinc-700">
                                     <div class="flex items-center gap-4 w-full">
-                                        <img src="{{ $pending->image_url }}" class="w-12 h-12 rounded-lg object-cover bg-zinc-800">
+                                        <img src="{{ $pending->image }}" class="w-12 h-12 rounded-lg object-cover bg-zinc-800">
                                         <div>
                                             <h4 class="font-bold text-white">{{ $pending->name }}</h4>
                                             <p class="text-xs text-zinc-400">

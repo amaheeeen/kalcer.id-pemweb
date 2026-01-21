@@ -4,7 +4,7 @@
 @source "../views";
 @source "../js";
 
-/* MAGIC FIX: Paksa Dark Mode menggunakan Class Strategy */
+/* Dark Mode menggunakan Class Strategy */
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -12,7 +12,7 @@
     --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
     --font-syne: "Syne", sans-serif;
 
-    /* --- ANIMASI BARU --- */
+    /* --- ANIMASI --- */
 
     /* 1. Marquee (Teks Berjalan) */
     @keyframes marquee {

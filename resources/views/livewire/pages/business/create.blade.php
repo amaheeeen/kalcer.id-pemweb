@@ -46,7 +46,7 @@ class extends Component {
             'operational_hours' => $this->operational_hours,
             'latitude' => $this->latitude, // Nanti bisa dikembangin pake Map Picker
             'longitude' => $this->longitude,
-            'image_url' => 'https://images.unsplash.com/photo-1554118811-1e0d58224f24', // Default Image
+            'image' => 'https://images.unsplash.com/photo-1554118811-1e0d58224f24', // Default Image
             'viral_score' => 0,
             'profile_views' => 0,
             'crowd_level' => 'sepi',

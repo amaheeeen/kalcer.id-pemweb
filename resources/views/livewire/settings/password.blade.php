@@ -20,10 +20,10 @@ new class extends Component {
             throw $e;
         }
 
-        /** @var \App\Models\User $user */ // Tambahkan ini untuk membantu VS Code
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $user->update([ // Sekarang 'update' dikenali
+        $user->update([
             'password' => Hash::make($validated['password']),
         ]);
 

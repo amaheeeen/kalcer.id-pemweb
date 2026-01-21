@@ -57,7 +57,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Helper untuk mengambil inisial nama (Dipakai di Sidebar/Header).
-     * Contoh: "Farhan Ammar" -> "FA"
      */
     public function initials(): string
     {

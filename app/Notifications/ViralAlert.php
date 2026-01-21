@@ -28,7 +28,7 @@ class ViralAlert extends Notification
             'place_id' => $this->place->id,
             'title' => '🔥 Viral Alert: ' . $this->place->name,
             'message' => 'Tempat ini baru saja mendapatkan skor viral tinggi! Cek sekarang.',
-            'image' => $this->place->image_url,
+            'image' => $this->place->image,
             'time' => now(),
         ];
     }

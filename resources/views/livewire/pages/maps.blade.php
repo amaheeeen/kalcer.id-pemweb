@@ -44,8 +44,6 @@ class extends Component {
     }
 }; ?>
 
-{{-- ROOT ELEMENT (HANYA BOLEH ADA SATU DIV UTAMA) --}}
-{{-- GANTI SELURUH STRUKTUR HTML DENGAN INI --}}
 <div class="flex flex-col lg:flex-row h-[calc(100dvh-64px)] bg-white dark:bg-zinc-900 overflow-hidden relative">
 
     <style>
@@ -57,7 +55,6 @@ class extends Component {
         .mapboxgl-popup-content { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
         .mapboxgl-popup-tip { border-top-color: #18181b !important; }
         
-        /* Hide mapbox logo info for cleaner look */
         .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-bottom-right { opacity: 0.6; transform: scale(0.8); transform-origin: bottom; }
     </style>
 
@@ -154,7 +151,6 @@ class extends Component {
     <div id="map-data" data-places="{{ json_encode($places) }}" class="hidden"></div>
 </div>
 
-{{-- SCRIPT DIJALANKAN DI LUAR DOM TAPI TETAP DALAM KONTEKS LIVEWIRE --}}
 @script
 <script>
     // Pastikan token ini benar

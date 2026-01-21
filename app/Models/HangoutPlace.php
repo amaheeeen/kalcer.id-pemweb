@@ -47,7 +47,7 @@ class HangoutPlace extends Model
     {
         return Attribute::make(
             get: function ($value, $attributes) {
-                // Ambil data mentah dari kolom 'image_url' di database
+                // Ambil data mentah dari kolom 'image' di database
                 $path = $attributes['image'] ?? null;
 
                 // 1. Jika kosong, pakai placeholder

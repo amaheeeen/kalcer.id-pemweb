@@ -153,7 +153,7 @@ class extends Component {
     
     {{-- HERO SECTION --}}
     <div class="relative h-[50vh] md:h-[60vh] w-full overflow-hidden group">
-        <img src="{{ $place->image_url }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105 filter brightness-75">
+        <img src="{{ $place->image }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105 filter brightness-75">
         <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent"></div>
 
         <a href="{{ route('explore') }}" wire:navigate class="absolute top-6 left-6 z-20 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition">

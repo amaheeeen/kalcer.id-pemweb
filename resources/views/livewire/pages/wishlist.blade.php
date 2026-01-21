@@ -65,7 +65,7 @@ class extends Component {
                         </button>
 
                         <div class="relative h-48 overflow-hidden">
-                            <img src="{{ $place->image_url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                            <img src="{{ $place->image }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent"></div>
                             <div class="absolute bottom-3 left-4 text-white">
                                 <span class="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded backdrop-blur-md border border-white/10 mb-1 inline-block">{{ $place->category }}</span>

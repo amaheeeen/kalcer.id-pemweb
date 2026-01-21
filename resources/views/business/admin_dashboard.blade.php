@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            {{-- 2. TABEL VERIFIKASI (FITUR NO. 5) --}}
+            {{-- 2. TABEL VERIFIKASI --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {{-- Kolom Kiri: Tabel Antrian --}}

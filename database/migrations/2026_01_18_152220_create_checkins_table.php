@@ -17,7 +17,6 @@ return new class extends Migration
         $table->foreignId('hangout_place_id')->constrained('hangout_places')->onDelete('cascade');
         $table->timestamp('created_at')->useCurrent();
         
-        // Opsional: Jika ingin user cuma bisa check-in sekali per 3 jam di tempat yang sama
         // $table->index(['user_id', 'hangout_place_id', 'created_at']);
     });
     }

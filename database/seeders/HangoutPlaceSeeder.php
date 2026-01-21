@@ -93,7 +93,6 @@ class HangoutPlaceSeeder extends Seeder
                 
                 'price_range' => rand(1, 3), // 1=$, 2=$$, 3=$$$
                 'personality_type' => $personality, 
-                // -----------------------------
 
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),

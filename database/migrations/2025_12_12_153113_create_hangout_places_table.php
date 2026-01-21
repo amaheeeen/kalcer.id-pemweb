@@ -24,7 +24,7 @@ return new class extends Migration
             $table->json('facilities')->nullable(); // Disimpan sebagai JSON ["WiFi", "AC"]
             $table->string('operational_hours')->nullable();
             $table->text('description')->nullable();
-            $table->string('image_url')->nullable(); // Foto Utama
+            $table->string('image')->nullable(); // Foto Utama
             
             // Analitik & Viralitas
             $table->enum('crowd_level', ['sepi', 'sedang', 'ramai', 'penuh'])->default('sepi');

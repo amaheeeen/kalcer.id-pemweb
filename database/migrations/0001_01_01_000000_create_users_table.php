@@ -18,10 +18,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             
-            // --- Tambahan Sesuai SRS ---
-            // Membedakan Admin, User, dan Pelaku Usaha [cite: 290, 291]
+            // Membedakan Admin, User, dan Pelaku Usaha
             $table->enum('role', ['admin', 'user', 'business_owner'])->default('user');
-            // Nomor HP untuk Pelaku Usaha [cite: 305]
+            // Nomor HP untuk Pelaku Usaha
             $table->string('phone_number')->nullable();
             // ---------------------------
 

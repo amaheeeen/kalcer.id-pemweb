@@ -63,7 +63,6 @@ class BusinessController extends Controller
         // SKENARIO 2: User input manual tempat baru (Manual Add)
         elseif ($request->filled('new_name')) {
             
-            // Generate koordinat acak di sekitar Jakarta Selatan agar muncul di peta
             // (Base Lat: -6.2..., Base Lng: 106.8...)
             $randomLat = -6.2 . rand(1000, 9999); 
             $randomLng = 106.8 . rand(1000, 9999);
@@ -74,10 +73,10 @@ class BusinessController extends Controller
                 'category'      => $request->new_category ?? 'Coffee Shop',
                 'address'       => $request->new_address ?? 'Jakarta Selatan',
                 'description'   => 'Tempat hangout baru yang sedang hits.',
-                'image_url'     => 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop', // Default Image
+                'image'     => 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop', // Default Image
                 'is_claimed'    => true,
-                'is_verified'   => false, // [UPDATE] Set ke False (Pending)
-                'viral_score'   => 50, // Score awal standard
+                'is_verified'   => false, 
+                'viral_score'   => 50,
                 'profile_views' => 0,
                 'latitude'      => (float) $randomLat,
                 'longitude'     => (float) $randomLng,
@@ -191,7 +190,7 @@ class BusinessController extends Controller
             [
                 'category' => 'Place', 
                 'title' => $latestPlace ? ($latestPlace->name . ' ditambahkan ke peta') : 'Belum ada tempat baru', 
-                'image' => $latestPlace ? $latestPlace->image_url : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000'
+                'image' => $latestPlace ? $latestPlace->image : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000'
             ]
         ];
 
