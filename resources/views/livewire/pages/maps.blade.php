@@ -122,7 +122,7 @@ class extends Component {
                          class="cursor-pointer group flex gap-3 p-3 rounded-2xl bg-white dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800 transition border border-zinc-100 dark:border-zinc-800 hover:border-indigo-500/50 hover:shadow-lg dark:hover:shadow-indigo-500/10">
                         
                         <div class="w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-zinc-200 relative">
-                            <img src="{{ $place->image_url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <img src="{{ $place->image }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                         </div>
                         
                         <div class="flex-1 min-w-0 flex flex-col justify-between">
@@ -282,7 +282,7 @@ class extends Component {
             const popupHTML = `
                 <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden shadow-2xl w-56 font-sans">
                     <div class="relative h-28 w-full">
-                        <img src="${place.image_url}" class="w-full h-full object-cover">
+                        <img src="${place.image}" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                         <span class="absolute top-2 right-2 text-[10px] font-bold text-black bg-white/90 px-2 py-0.5 rounded-full shadow-sm">${place.category}</span>
                         <div class="absolute bottom-2 left-3">
