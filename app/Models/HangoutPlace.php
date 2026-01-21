@@ -63,7 +63,7 @@ class HangoutPlace extends Model
         return round($this->reviews()->avg('rating'), 1) ?? 0;
     }
 
-    // [FIX] Logika Crowd Status (Fitur No. 2)
+    // [FIX] Logika Crowd Status
     public function getCrowdStatusAttribute()
     {
         $activeVisitors = $this->checkins()

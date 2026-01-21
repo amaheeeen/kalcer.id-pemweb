@@ -208,7 +208,6 @@
         </nav>
 
         {{-- MAIN CONTENT --}}
-        {{-- Added padding-top 32 (pt-32) to compensate for the floating navbar --}}
         <main class="flex-grow relative w-full pt-32">
             {{ $slot }}
         </main>
