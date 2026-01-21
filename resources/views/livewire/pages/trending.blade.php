@@ -48,7 +48,7 @@ class extends Component {
                     <div class="relative z-10 flex flex-col md:flex-row">
                         
                         <div class="w-full md:w-72 h-64 md:h-auto relative shrink-0">
-                            <img src="{{ $place->image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                            <img src="{{ $place->image }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                             
                             <div class="absolute top-4 left-4 flex gap-2">
                                 @if($index === 0)
