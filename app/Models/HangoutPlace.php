@@ -20,7 +20,7 @@ class HangoutPlace extends Model
         'is_verified' => 'boolean',
     ];
 
-    // --- RELATIONSHIPS (Wajib Lengkap) ---
+    // --- RELATIONSHIPS ---
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -47,20 +47,16 @@ class HangoutPlace extends Model
     {
         return Attribute::make(
             get: function ($value, $attributes) {
-                // Ambil data mentah dari kolom 'image' di database
                 $path = $attributes['image'] ?? null;
 
-                // 1. Jika kosong, pakai placeholder
                 if (!$path) {
                     return 'https://placehold.co/600x400?text=No+Image';
                 }
 
-                // 2. Jika link eksternal (Unsplash/Google), return langsung
                 if (Str::startsWith($path, ['http://', 'https://'])) {
                     return $path;
                 }
 
-                // 3. Jika file lokal, tambahkan asset('storage/...')
                 return asset('storage/' . $path);
             }
         );
@@ -71,7 +67,7 @@ class HangoutPlace extends Model
         return round($this->reviews()->avg('rating'), 1) ?? 0;
     }
 
-    // [FIX] Logika Crowd Status
+    // Logika Crowd Status
     public function getCrowdStatusAttribute()
     {
         $activeVisitors = $this->checkins()

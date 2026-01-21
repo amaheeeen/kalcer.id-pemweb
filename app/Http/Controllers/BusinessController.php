@@ -128,7 +128,7 @@ class BusinessController extends Controller
         // 2. Viral Spots (Tempat dengan score > 80)
         $viralCount = HangoutPlace::where('viral_score', '>', 80)->count();
 
-        // 3. [BARU] Ambil daftar klaim yang statusnya masih Pending (is_verified = 0)
+        // 3. Ambil daftar klaim yang statusnya masih Pending (is_verified = 0)
         // Pastikan kolom 'is_verified' sudah ada di database
         $pendingClaims = HangoutPlace::where('is_claimed', true)
                                      ->where('is_verified', false)
@@ -206,9 +206,7 @@ class BusinessController extends Controller
         
         // Ubah status jadi Verified
         $place->update(['is_verified' => true]);
-        
-        // Opsional: Kirim notifikasi ke user (pakai fitur No. 4)
-        
+                
         return back()->with('success', 'Bisnis berhasil diverifikasi & diterbitkan!');
     }
 

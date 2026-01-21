@@ -113,10 +113,9 @@ class extends Component {
         // Naikkan skor viral
         $this->place->increment('viral_score', 5); // Naik 5 poin biar cepat viral untuk testing
         
-        // [BARU] LOGIKA NOTIFIKASI
+        // LOGIKA NOTIFIKASI
         // Kirim notifikasi ke user lain jika skor viral tembus > 80
         if ($this->place->viral_score >= 80) {
-            // Ambil 5 user acak selain diri sendiri (biar ga spam database saat testing)
             $users = User::where('id', '!=', Auth::id())->inRandomOrder()->take(5)->get();
             
             if ($users->count() > 0) {

@@ -17,11 +17,10 @@ class extends Component {
     public $category = 'all';
     public $sort = 'newest';
 
-    // [BARU] State untuk Filter Fitur No. 3
+    // Filter Fitur Baru
     public $price = []; // Array karena checkbox (bisa pilih $ dan $$ sekaligus)
     public $personality = 'all'; // String karena radio button (pilih satu)
 
-    // Reset pagination saat filter berubah agar tidak error
     public function updatedSearch() { $this->resetPage(); }
     public function updatedCategory() { $this->resetPage(); }
     public function updatedSort() { $this->resetPage(); }
@@ -50,12 +49,12 @@ class extends Component {
             $query->where('category', $this->category);
         }
 
-        // [BARU] 3. Filter Harga (Checkboxes)
+        // 3. Filter Harga (Checkboxes)
         if (!empty($this->price)) {
             $query->whereIn('price_range', $this->price);
         }
 
-        // [BARU] 4. Filter Psikologi (Radio)
+        // 4. Filter Psikologi (Radio)
         if ($this->personality !== 'all') {
             $query->where('personality_type', $this->personality);
         }
@@ -144,7 +143,7 @@ class extends Component {
 
         <div class="flex flex-col lg:flex-row gap-8">
             
-            {{-- SIDEBAR FILTER (FITUR NO. 3) --}}
+            {{-- SIDEBAR FILTER --}}
             <div class="w-full lg:w-72 flex-shrink-0 space-y-6">
                 
                 <div class="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] shadow-xl border border-zinc-100 dark:border-zinc-800 sticky top-24">

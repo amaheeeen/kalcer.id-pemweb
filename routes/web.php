@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', [BusinessController::class, 'adminDashboard'])
         ->name('business.dashboard');
 
-    // [FIX] Route untuk Tombol Approve & Reject (WAJIB ADA)
+    // Route untuk Tombol Approve & Reject
     Route::post('/admin/approve/{id}', [BusinessController::class, 'verifyClaim'])
         ->name('admin.approve');
         
