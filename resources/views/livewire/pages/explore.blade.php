@@ -108,7 +108,7 @@ class extends Component {
         <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 sm:px-6 lg:px-8 no-scrollbar pb-4" style="scroll-padding-left: 1rem; scroll-padding-right: 1rem;">
             @foreach($trendingPlaces as $trend)
                 <a href="{{ route('place.show', $trend->id) }}" wire:navigate class="snap-center shrink-0 relative w-[280px] md:w-[320px] h-[400px] md:h-[450px] rounded-[2rem] overflow-hidden group ring-1 ring-zinc-900/5 dark:ring-white/10 shadow-xl dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
-                    <img src="{{ $trend->image_url }}" alt="{{ $trend->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <img src="{{ $trend->image }}" alt="{{ $trend->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90"></div>
                     <div class="absolute top-4 right-4">
                         <div class="flex items-center gap-1 px-3 py-1.5 bg-orange-500 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg shadow-orange-500/20 backdrop-blur-md">
@@ -246,7 +246,7 @@ class extends Component {
                                 
                                 {{-- Image Wrapper --}}
                                 <div class="relative h-60 overflow-hidden">
-                                    <img src="{{ $place->image_url }}" alt="{{ $place->name }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+                                    <img src="{{ $place->image }}" alt="{{ $place->name }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
                                     <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/20 to-transparent opacity-60"></div>
                                     
                                     {{-- Badge Kategori --}}

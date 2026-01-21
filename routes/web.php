@@ -62,7 +62,6 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
     
-    // ⚠️ SAYA HAPUS ROUTE VOLT ADMIN DI SINI KARENA DUPLIKAT
 });
 
 // --- 0. UTILITIES ---

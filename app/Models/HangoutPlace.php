@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str; 
 
 class HangoutPlace extends Model
@@ -42,20 +43,27 @@ class HangoutPlace extends Model
 
     // --- ACCESSORS ---
 
-    public function getImageUrlAttribute()
+    protected function image(): Attribute
     {
-        // 1. Cek apakah kolom image_url kosong?
-        if (empty($this->image_url)) {
-            return 'https://placehold.co/600x400?text=No+Image';
-        }
+        return Attribute::make(
+            get: function ($value, $attributes) {
+                // Ambil data mentah dari kolom 'image_url' di database
+                $path = $attributes['image'] ?? null;
 
-        // 2. Cek apakah ini link eksternal (Unsplash, dll)?
-        if (Str::startsWith($this->image_url, ['http://', 'https://'])) {
-            return $this->image_url;
-        }
+                // 1. Jika kosong, pakai placeholder
+                if (!$path) {
+                    return 'https://placehold.co/600x400?text=No+Image';
+                }
 
-        // 3. Jika bukan link, berarti file upload lokal (storage)
-        return asset('storage/' . $this->image_url);
+                // 2. Jika link eksternal (Unsplash/Google), return langsung
+                if (Str::startsWith($path, ['http://', 'https://'])) {
+                    return $path;
+                }
+
+                // 3. Jika file lokal, tambahkan asset('storage/...')
+                return asset('storage/' . $path);
+            }
+        );
     }
 
     public function getAvgRatingAttribute()
